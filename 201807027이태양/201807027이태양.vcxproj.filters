@@ -30,12 +30,18 @@
     <ClInclude Include="GameHandler.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="ButtonObject.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="201807027이태양.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="GameHandler.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ButtonObject.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

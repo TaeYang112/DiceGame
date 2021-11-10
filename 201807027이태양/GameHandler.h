@@ -1,6 +1,9 @@
 #pragma once
+#include <vector>
 #include "framework.h"
+#include "ButtonObject.h" 
 
+using namespace std;
 enum {
 	
 };
@@ -15,13 +18,17 @@ class GameHandler
 
 private:
 	Point MousePos;								// ¸¶¿ì½º ÁÂÇ¥
+	
+	HWND hWnd;
 
 	HPEN oldPen;																			
 	HPEN newPen;
 	HBRUSH oldBrush;
 	HBRUSH newBrush;
 
-	bool bUsingBrushPen;
+	vector<ButtonObject> v_ButtonArr;
+
+	ButtonObject Purchase;
 
 public:
 	GameHandler();
@@ -35,4 +42,8 @@ public:
 
 	void SetDCColor(HDC hdc, COLORREF B_Color, COLORREF P_Color);
 	void ClearDCColor(HDC hdc);
+
+	void OnClickEvent(HWND hWnd,int x, int y);
+
+	bool flag = false;
 };

@@ -109,7 +109,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
 
    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, 1090, 733, nullptr, nullptr, hInstance, nullptr);
+      CW_USEDEFAULT, 0, 1090, 780, nullptr, nullptr, hInstance, nullptr);
 
 
    if (!hWnd)
@@ -162,15 +162,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         
         if (DEBUG_MODE)
         {
-            RECT Eraser;
-            Eraser.top = 0;
-            Eraser.left = 800;
-            Eraser.right = 950;
-            Eraser.bottom = 20;
+            RECT Eraser = {800,0,950,20 };
            InvalidateRect(hWnd, &Eraser, TRUE);
         }
     }
     break;
+
+    case WM_LBUTTONDOWN:
+        GHnd.OnClickEvent(hWnd,LOWORD(lParam),HIWORD(lParam));
+        break;
     case WM_PAINT:
         OnPaint(hWnd);
         break;

@@ -9,8 +9,12 @@ GameHandler::GameHandler()
     newBrush = nullptr;
     oldPen = nullptr;
     oldBrush = nullptr;
+    Purchase.SetBounds(305, 450, 405, 550);
+    Purchase.SetClickAction([](HWND hWnd) 
+        {DestroyWindow(hWnd);
+        });
+    v_ButtonArr.push_back(Purchase);
     
-    bUsingBrushPen = false;
 }
 Point GameHandler::GetMousePos() const
 {
@@ -34,11 +38,11 @@ void GameHandler::DrawFrame(HWND hWnd, HDC hdc)
 
     // 게임 테두리 그림자
     SetDCColor(hdc, RGB(200,200,200), NULL);
-    RoundRect(hdc, 30, 20, 700, 670, 30, 30);              
+    RoundRect(hdc, 30, 20, 700, 700, 30, 30);              
     ClearDCColor(hdc);  
 
     // 게임 테두리
-    RoundRect(hdc, 20, 0, 690, 660, 30, 30);      
+    RoundRect(hdc, 20, 0, 690, 690, 30, 30);      
 
     // 게임 상단바 (시간 표시 영역)
     SetDCColor(hdc, RGB(100, 100, 100),PS_NULL);;           
@@ -92,22 +96,29 @@ void GameHandler::DrawFrame(HWND hWnd, HDC hdc)
     }
 
     // 주사위 구매버튼 바깥
-    SetDCColor(hdc, RGB(200, 200, 200), RGB(170, 170, 170));
+    SetDCColor(hdc, RGB(180, 180, 180), RGB(170, 170, 170));
     Ellipse(hdc, 305, 450, 405, 550);
 
     // 주사위 구매버튼 안쪽
     SetDCColor(hdc, RGB(220, 220, 220), RGB(210, 210, 210));
     Ellipse(hdc, 315, 460, 395, 540);
 
-    // 주사위 구매버튼의 주사위
+    // 구매버튼의 주사위
     SetDCColor(hdc, RGB(255, 255, 255), RGB(1, 1, 1));
     Rectangle(hdc, 340, 465, 370, 495);
-
+    // 구매버튼 주사위 눈
     SetDCColor(hdc, RGB(0, 0, 0), NULL);
     Ellipse(hdc, 345, 470, 350, 475);
     Ellipse(hdc, 360, 470, 365, 475);
     Ellipse(hdc, 345, 485, 350, 490);
     Ellipse(hdc, 360, 485, 365, 490);
+
+
+    // 주사위 강화 컨테이너
+    SetDCColor(hdc, RGB(220, 220, 220), NULL);
+    RoundRect(hdc, 135, 575, 575, 680, 20, 20);
+
+    if(flag == true) DrawLine(hdc, 0, 0, 500, 500);
 
     SelectObject(hdc, oldPen);
     SelectObject(hdc, oldBrush);
@@ -135,6 +146,16 @@ void GameHandler::ClearDCColor(HDC hdc)
     SetDCPenColor(hdc, RGB(0, 0, 0));
 }
 
+void GameHandler::OnClickEvent(HWND hWnd,int x, int y)
+{
+    for (int i = 0; i < v_ButtonArr.size(); i++)
+    {
+        if (v_ButtonArr[i].IsOverlappedPoint(x, y))
+        {
+            v_ButtonArr[i].OnClickedObject(hWnd);
+        }
+    }
+}
 
 /*  비트맵 출력
     HDC MemDC = CreateCompatibleDC(hdc);
@@ -147,3 +168,4 @@ void GameHandler::ClearDCColor(HDC hdc)
     DeleteObject(bit);
     DeleteDC(MemDC);
 */
+

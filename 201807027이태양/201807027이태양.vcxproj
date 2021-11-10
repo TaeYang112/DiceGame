@@ -140,6 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="201807027이태양.h" />
+    <ClInclude Include="ButtonObject.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="GameHandler.h" />
     <ClInclude Include="Resource.h" />
@@ -147,6 +148,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="201807027이태양.cpp" />
+    <ClCompile Include="ButtonObject.cpp" />
     <ClCompile Include="GameHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
