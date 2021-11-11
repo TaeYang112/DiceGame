@@ -193,7 +193,7 @@ void OnPaint(HWND hWnd)
     if (DEBUG_MODE)                             //마우스 좌표를 출력
     {
         WCHAR mouse_position[20];
-        Point pos = GHnd.GetMousePos();
+        POINT pos = GHnd.GetMousePos();
         wsprintfW(mouse_position, L"x = %d   y = %d",pos.x, pos.y);
         TextOut(hdc, 800, 0, mouse_position, lstrlenW(mouse_position));
     }

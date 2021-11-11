@@ -1,6 +1,7 @@
 
 #include "GameHandler.h"
 #include "resource.h"
+#include "DiceBase.h"
 
 GameHandler::GameHandler()
 {
@@ -15,8 +16,16 @@ GameHandler::GameHandler()
         });
     v_ButtonArr.push_back(Purchase);
     
+    v_DiceArr.push_back(new DiceBase(1));
+    v_DiceArr.push_back(new DiceBase(2));
+    v_DiceArr.push_back(new DiceBase(3));
+    v_DiceArr.push_back(new DiceBase(4));
+    v_DiceArr.push_back(new DiceBase(5));
+    v_DiceArr.push_back(new DiceBase(6));
+
+    
 }
-Point GameHandler::GetMousePos() const
+POINT GameHandler::GetMousePos() const
 {
 	return MousePos;
 }
@@ -80,6 +89,11 @@ void GameHandler::DrawFrame(HWND hWnd, HDC hdc)
     // 다시 DC_PEN 사용
     SelectObject(hdc, GetStockObject(DC_PEN));
     SelectObject(hdc, GetStockObject(DC_BRUSH));
+
+
+
+
+
     
     // 주사위 슬롯
     SetDCColor(hdc, RGB(220, 220, 220), NULL);
@@ -120,6 +134,14 @@ void GameHandler::DrawFrame(HWND hWnd, HDC hdc)
 
     if(flag == true) DrawLine(hdc, 0, 0, 500, 500);
 
+
+    //주사위
+    for (int i = 0; i < (int)v_DiceArr.size(); i++)
+    {
+        v_DiceArr[i]->SetSlot(i+1);
+        v_DiceArr[i]->SetEye(i + 1);
+        v_DiceArr[i]->DrawDice(hWnd, hdc);
+    }
     SelectObject(hdc, oldPen);
     SelectObject(hdc, oldBrush);
 
@@ -148,7 +170,8 @@ void GameHandler::ClearDCColor(HDC hdc)
 
 void GameHandler::OnClickEvent(HWND hWnd,int x, int y)
 {
-    for (int i = 0; i < v_ButtonArr.size(); i++)
+    
+    for (int i = 0; i < (int)v_ButtonArr.size(); i++)
     {
         if (v_ButtonArr[i].IsOverlappedPoint(x, y))
         {

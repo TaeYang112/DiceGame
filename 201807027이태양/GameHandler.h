@@ -2,22 +2,16 @@
 #include <vector>
 #include "framework.h"
 #include "ButtonObject.h" 
+#include "DiceBase.h"
 
 using namespace std;
-enum {
-	
-};
 
-struct Point
-{
-	int x;
-	int y;
-};
+class DiceBase;
 class GameHandler
 {
 
 private:
-	Point MousePos;								// ¸¶¿ì½º ÁÂÇ¥
+	POINT MousePos;								// ¸¶¿ì½º ÁÂÇ¥
 	
 	HWND hWnd;
 
@@ -27,13 +21,13 @@ private:
 	HBRUSH newBrush;
 
 	vector<ButtonObject> v_ButtonArr;
-
+	vector<DiceBase*> v_DiceArr;
 	ButtonObject Purchase;
 
 public:
 	GameHandler();
 
-	Point GetMousePos() const;
+	POINT GetMousePos() const;
 	void SetMousePos(int x, int y);
 
 	void DrawFrame(HWND hWnd, HDC hdc);
