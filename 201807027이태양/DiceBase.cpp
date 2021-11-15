@@ -11,10 +11,8 @@ DiceBase::DiceBase(int slot, int eye)
 	IsSelected = FALSE;
 	DiceType = 0;
 
-
 	DiceEye =   eye <= 6 ? eye : 6;
-	Slot = slot;
-	SetSlot(Slot);
+	SetSlot(slot);
 	
 }
 
@@ -28,8 +26,9 @@ DiceBase::DiceBase(DiceBase &Dice)
 	Location = Dice.Location;
 	Power = Dice.Power;
 	IsSelected = FALSE;
-	Slot = 1;
 	DiceType = 0;
+
+	SetSlot(0);
 }
 
 BOOL DiceBase::operator==(const DiceBase &Dice2)
@@ -113,16 +112,6 @@ void DiceBase::DrawDice(HWND hWnd, HDC hdc)
 
 
 
-void DiceBase::SetSlot(int slot)
-{
-	int y = 188 + 72 * ((slot - 1) / 5);
-	int x = 155 + 83 * ((slot - 1) % 5);	// 주사위 슬롯 위치 구하기
-
-	Location = { x,y };
-	this->Slot = slot;
-}
-
-
 
 bool DiceBase::IsOverlappedPoint(const int x, const int y) const
 {
@@ -161,7 +150,7 @@ void DiceBase::MoveToMouse(HWND hWnd, POINT point)
 
 }
 
-int DiceBase::GetEye()
+int DiceBase::GetEye() const
 {
 	return DiceEye;
 }
@@ -170,4 +159,17 @@ void DiceBase::AddEye(int eye)
 {
 	DiceEye = DiceEye + eye <= 6 ? DiceEye + eye : 6;
 
+}
+void DiceBase::SetSlot(int slot)
+{
+	int y = 188 + 72 * (slot / 5);
+	int x = 155 + 83 * (slot % 5);	// 주사위 슬롯 위치 구하기
+
+	Location = { x,y };
+	this->Slot = slot;
+}
+
+int DiceBase::GetSlot() const
+{
+	return Slot;
 }

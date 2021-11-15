@@ -22,12 +22,13 @@ public:
 
 	void DrawDice(HWND hWnd, HDC hdc);
 	void SetSlot(int slot);
+	int GetSlot() const;
 	void AddEye(int eye);
 	bool IsOverlappedPoint(const int x, const int y) const;
 	void SetSelected(BOOL IsSelected);
 	void ReDraw(HWND hWnd);
 	void MoveToMouse(HWND hWnd, POINT point);
-	int GetEye();
+	int GetEye() const;
 	BOOL operator==(const DiceBase& Dice2);
 };
 

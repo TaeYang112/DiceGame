@@ -11,13 +11,18 @@ GameHandler::GameHandler()
     oldPen = nullptr;
     oldBrush = nullptr;
     DraggingDice = nullptr;
+    DiceCount = 0;
 
     v_DiceArr.assign(15, nullptr);
     bDragging = FALSE;
+
+
     // 구매버튼
     Purchase.SetBounds(305, 450, 405, 550); 
     Purchase.SetClickAction([this](HWND hWnd) 
         {
+            if (DiceCount >= 15) return; // 주사위 자리가 없다면 리턴
+
             int r;
             while (1)
             {
@@ -27,6 +32,7 @@ GameHandler::GameHandler()
             
             v_DiceArr[r] = make_shared<DiceBase>(r, 1);
             v_DiceArr[r]->ReDraw(hWnd);
+            DiceCount++;
         });
     Purchase.SetDrawAtion([this](HDC hdc)
         {
@@ -35,6 +41,7 @@ GameHandler::GameHandler()
         });
     v_ButtonArr.push_back(Purchase);
     
+
 
     srand((unsigned int)time(NULL));
 
@@ -154,7 +161,7 @@ void GameHandler::DrawFrame(HWND hWnd, HDC hdc)
 
 
     //주사위
-    for (int i = 0; i < (int)v_DiceArr.size(); i++)
+    for (int i = 0; i < 15; i++)
     {
         if (v_DiceArr[i] == nullptr) continue;
         v_DiceArr[i]->DrawDice(hWnd, hdc);
@@ -202,7 +209,7 @@ void GameHandler::OnMouseClicked(HWND hWnd,int x, int y)  // WM_LBUTTONDOWN 에서
             v_ButtonArr[i].OnClickedObject(hWnd);       // 버튼에 등록한 함수를 실행
         }
     }
-    for (int i = 0; i < (int)v_DiceArr.size(); i++)
+    for (int i = 0; i < 15; i++)
     {
         if (v_DiceArr[i] == nullptr) continue;
         if (v_DiceArr[i]->IsOverlappedPoint(x, y))      // 클릭한 위치가 주사위의 범위 내에 있을경우 참
@@ -244,10 +251,10 @@ void GameHandler::OnMouseReleased(HWND hWnd, int x, int y)  // WM_LBUTTONUP 에서
         DraggedDice->SetSelected(FALSE);            // 색상 돌려놓음
         
 
-        if (DraggedDice->GetEye() < 6)        // 눈이 6이상일 경우 겹쳐도 처리 할게 없음
+        if (DraggedDice->GetEye() < 6)        // 눈이 6이상 주사위 제외
         {
 
-            for (int i = 0; i < (int)v_DiceArr.size(); i++)     // 모든 주사위 탐색
+            for (int i = 0; i < 15; i++)     // 모든 주사위 탐색
             {
 
                 if (v_DiceArr[i] == nullptr) continue;
@@ -258,7 +265,10 @@ void GameHandler::OnMouseReleased(HWND hWnd, int x, int y)  // WM_LBUTTONUP 에서
                         if (v_DiceArr[i].get() == DraggedDice) continue;     // 자기 자신은 예외
                         v_DiceArr[i]->AddEye(1);                // 눈을 증가시킴
 
-                        delete DraggedDice;                     // 드래그중이던 주사위 제거
+                        int temp = DraggedDice->GetSlot();
+                        v_DiceArr[temp].reset();
+                        DraggedDice = nullptr;                     // 드래그중이던 주사위 제거
+                        DiceCount--;
                         break;
                     }
                 }

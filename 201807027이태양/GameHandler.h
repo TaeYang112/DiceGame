@@ -23,8 +23,9 @@ private:
 
 	unique_ptr<DiceBase> DraggingDice;			// 주사위를 드래그할때 임시로 생성되는 객체
 	DiceBase* DraggedDice;						// 드래그 되었던 객체의 주소를 임시로 저장함
-	BOOL bDragging;
+	BOOL bDragging;								// 현재 드래그중인지 상태정보를 갖는 변수. TRUE 인동안 DraggedDice != nullptr 보장해야함
 
+	int DiceCount;
 public:
 	GameHandler();
 	~GameHandler();
