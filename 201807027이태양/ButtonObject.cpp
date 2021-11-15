@@ -7,7 +7,7 @@ ButtonObject::ButtonObject() : x1(0), x2(0), y1(0), y2(0)
 {
 	ClickFunction = [](HWND hWnd){};		// 람다함수 초기화
 	DrawFunction = [](HDC hdc){};
-	
+	bCircle = FALSE;
 }
 
 void ButtonObject::SetBounds(int x1, int y1, int x2, int y2)
@@ -51,3 +51,4 @@ bool ButtonObject::IsOverlappedPoint(int x, int y)
 	}
 	return false;
 }
+

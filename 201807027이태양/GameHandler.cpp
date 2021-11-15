@@ -2,28 +2,48 @@
 #include "GameHandler.h"
 #include "resource.h"
 #include "DiceBase.h"
+#include <ctime>
+#include <cstdlib>
 
 GameHandler::GameHandler()
 {
     MousePos = { 0,0 };
-    newPen = nullptr;
-    newBrush = nullptr;
     oldPen = nullptr;
     oldBrush = nullptr;
-    Purchase.SetBounds(305, 450, 405, 550);
-    Purchase.SetClickAction([](HWND hWnd) 
-        {DestroyWindow(hWnd);
+    DraggingDice = nullptr;
+
+    v_DiceArr.assign(15, nullptr);
+    bDragging = FALSE;
+    // 구매버튼
+    Purchase.SetBounds(305, 450, 405, 550); 
+    Purchase.SetClickAction([this](HWND hWnd) 
+        {
+            int r;
+            while (1)
+            {
+                r = rand() % 15;
+                if (v_DiceArr[r] == nullptr) break;
+            }
+            
+            v_DiceArr[r] = make_shared<DiceBase>(r, 1);
+            v_DiceArr[r]->ReDraw(hWnd);
+        });
+    Purchase.SetDrawAtion([this](HDC hdc)
+        {
+            SetDCColor(hdc, RGB(180, 180, 180), RGB(170, 170, 170));
+            Ellipse(hdc, 305, 450, 405, 550);
         });
     v_ButtonArr.push_back(Purchase);
     
-    v_DiceArr.push_back(new DiceBase(1));
-    v_DiceArr.push_back(new DiceBase(2));
-    v_DiceArr.push_back(new DiceBase(3));
-    v_DiceArr.push_back(new DiceBase(4));
-    v_DiceArr.push_back(new DiceBase(5));
-    v_DiceArr.push_back(new DiceBase(6));
 
-    
+    srand((unsigned int)time(NULL));
+
+
+}
+
+GameHandler::~GameHandler()
+{
+
 }
 POINT GameHandler::GetMousePos() const
 {
@@ -67,7 +87,7 @@ void GameHandler::DrawFrame(HWND hWnd, HDC hdc)
     
 
     // 주사위 컨테이너
-    newPen = CreatePen(PS_SOLID, 3, RGB(200, 200, 200));    
+    HPEN newPen = CreatePen(PS_SOLID, 3, RGB(200, 200, 200));    
     SelectObject(hdc, newPen);
     SelectObject(hdc, oldBrush);
 
@@ -109,9 +129,8 @@ void GameHandler::DrawFrame(HWND hWnd, HDC hdc)
         y += 72;
     }
 
-    // 주사위 구매버튼 바깥
-    SetDCColor(hdc, RGB(180, 180, 180), RGB(170, 170, 170));
-    Ellipse(hdc, 305, 450, 405, 550);
+    // 주사위 구매버튼 바깥 ( 버튼 객체 )
+    Purchase.DrawObject(hdc);
 
     // 주사위 구매버튼 안쪽
     SetDCColor(hdc, RGB(220, 220, 220), RGB(210, 210, 210));
@@ -132,16 +151,21 @@ void GameHandler::DrawFrame(HWND hWnd, HDC hdc)
     SetDCColor(hdc, RGB(220, 220, 220), NULL);
     RoundRect(hdc, 135, 575, 575, 680, 20, 20);
 
-    if(flag == true) DrawLine(hdc, 0, 0, 500, 500);
 
 
     //주사위
     for (int i = 0; i < (int)v_DiceArr.size(); i++)
     {
-        v_DiceArr[i]->SetSlot(i+1);
-        v_DiceArr[i]->SetEye(i + 1);
+        if (v_DiceArr[i] == nullptr) continue;
         v_DiceArr[i]->DrawDice(hWnd, hdc);
     }
+    
+    // 드래그중인 임시 주사위
+    if (IsDragging() == TRUE)
+    {
+        DraggingDice->DrawDice(hWnd, hdc);
+    }
+
     SelectObject(hdc, oldPen);
     SelectObject(hdc, oldBrush);
 
@@ -168,27 +192,88 @@ void GameHandler::ClearDCColor(HDC hdc)
     SetDCPenColor(hdc, RGB(0, 0, 0));
 }
 
-void GameHandler::OnClickEvent(HWND hWnd,int x, int y)
+void GameHandler::OnMouseClicked(HWND hWnd,int x, int y)  // WM_LBUTTONDOWN 에서 호출
 {
     
-    for (int i = 0; i < (int)v_ButtonArr.size(); i++)
+    for (int i = 0; i < (int)v_ButtonArr.size(); i++)   
     {
-        if (v_ButtonArr[i].IsOverlappedPoint(x, y))
+        if (v_ButtonArr[i].IsOverlappedPoint(x, y))     // 클릭한 위치가 버튼의 범위 내에 있을경우 참
         {
-            v_ButtonArr[i].OnClickedObject(hWnd);
+            v_ButtonArr[i].OnClickedObject(hWnd);       // 버튼에 등록한 함수를 실행
+        }
+    }
+    for (int i = 0; i < (int)v_DiceArr.size(); i++)
+    {
+        if (v_DiceArr[i] == nullptr) continue;
+        if (v_DiceArr[i]->IsOverlappedPoint(x, y))      // 클릭한 위치가 주사위의 범위 내에 있을경우 참
+        {
+            if (bDragging == FALSE)                    // 현재 드래그중이 아니라면
+            {
+                DraggedDice = v_DiceArr[i].get();             // 원본 객체 주소 저장, 원본객체는 가만히 있음
+
+                DraggingDice = make_unique<DiceBase>(*DraggedDice);     // 스마트 포인터 이용하여 클릭한 다이스를 복사 생성 / 마우스에 드래깅되는 객체
+
+                DraggedDice->SetSelected(TRUE);
+                DraggedDice->ReDraw(hWnd);
+                bDragging = TRUE;
+
+                break;
+            }
         }
     }
 }
 
-/*  비트맵 출력
-    HDC MemDC = CreateCompatibleDC(hdc);
-    HBITMAP bit = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BITMAP1));
-    HBITMAP obit = (HBITMAP)SelectObject(MemDC, bit);
+void GameHandler::OnMouseMoved(HWND hWnd)
+{
+    if (DraggingDice == nullptr) return;
+    DraggingDice->MoveToMouse(hWnd, GetMousePos());
 
-    StretchBlt(hdc, 0, 0, 620, 570, MemDC, 0, 00, 470, 570, SRCCOPY);
+}
 
-    SelectObject(MemDC, obit);
-    DeleteObject(bit);
-    DeleteDC(MemDC);
-*/
+void GameHandler::OnMouseReleased(HWND hWnd, int x, int y)  // WM_LBUTTONUP 에서 호출
+{
+    if (IsDragging() == TRUE)       // 드래그중이였다면
+    {
+
+
+        // 다이스끼리의 겹침과 상관없이 실행되는 부분. 드래그를 취소함
+
+        bDragging = FALSE;                          // 드래깅 끝냄
+        DraggingDice.reset(nullptr);                // 마우스를 따라다니는 임시 객체를 delete하고 변수를 nullptr로 변경
+
+        DraggedDice->SetSelected(FALSE);            // 색상 돌려놓음
+        
+
+        if (DraggedDice->GetEye() < 6)        // 눈이 6이상일 경우 겹쳐도 처리 할게 없음
+        {
+
+            for (int i = 0; i < (int)v_DiceArr.size(); i++)     // 모든 주사위 탐색
+            {
+
+                if (v_DiceArr[i] == nullptr) continue;
+                if (v_DiceArr[i]->IsOverlappedPoint(x, y))      // 마우스를 떼었던 위치가 주사위와 겹친다면
+                {
+                    if (*v_DiceArr[i] == *DraggedDice)          // 타입과 주사위 눈이 서로 같을 경우
+                    {
+                        if (v_DiceArr[i].get() == DraggedDice) continue;     // 자기 자신은 예외
+                        v_DiceArr[i]->AddEye(1);                // 눈을 증가시킴
+
+                        delete DraggedDice;                     // 드래그중이던 주사위 제거
+                        break;
+                    }
+                }
+            }
+        }
+        
+
+        DraggedDice = nullptr;                              
+
+        InvalidateRect(hWnd, NULL, FALSE);
+    }
+}
+
+BOOL GameHandler::IsDragging() const
+{
+    return bDragging;
+}
 

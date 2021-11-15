@@ -163,15 +163,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         if (DEBUG_MODE)
         {
             RECT Eraser = {800,0,950,20 };
-           InvalidateRect(hWnd, &Eraser, TRUE);
+           InvalidateRect(hWnd, &Eraser, FALSE);
+        }
+        if (GHnd.IsDragging())
+        {
+            GHnd.OnMouseMoved(hWnd);
         }
     }
     break;
 
     case WM_LBUTTONDOWN:
-        GHnd.OnClickEvent(hWnd,LOWORD(lParam),HIWORD(lParam));
+        GHnd.OnMouseClicked(hWnd,LOWORD(lParam),HIWORD(lParam));
         break;
+    case WM_LBUTTONUP:
+        GHnd.OnMouseReleased(hWnd, LOWORD(lParam), HIWORD(lParam));
     case WM_PAINT:
+
+
         OnPaint(hWnd);
         break;
     case WM_DESTROY:
@@ -188,20 +196,39 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 void OnPaint(HWND hWnd)
 {
     PAINTSTRUCT ps;
-    HDC hdc = BeginPaint(hWnd, &ps);
 
+    static HDC hdc, MemDC;
+    static HBITMAP BackBit, oldBackBit;
+    static RECT bufferRT;
+    MemDC = BeginPaint(hWnd, &ps);
+
+    GetClientRect(hWnd, &bufferRT);
+    hdc = CreateCompatibleDC(MemDC);
+    BackBit = CreateCompatibleBitmap(MemDC, bufferRT.right, bufferRT.bottom);
+    oldBackBit = (HBITMAP)SelectObject(hdc, BackBit);
+    PatBlt(hdc, 0, 0, bufferRT.right, bufferRT.bottom, WHITENESS);
+
+
+    // 실제 그리기 코드
     if (DEBUG_MODE)                             //마우스 좌표를 출력
     {
         WCHAR mouse_position[20];
         POINT pos = GHnd.GetMousePos();
-        wsprintfW(mouse_position, L"x = %d   y = %d",pos.x, pos.y);
+        wsprintfW(mouse_position, L"x = %d   y = %d", pos.x, pos.y);
         TextOut(hdc, 800, 0, mouse_position, lstrlenW(mouse_position));
     }
 
+
     GHnd.DrawFrame(hWnd, hdc);
 
+    // 더블버퍼링 끝
+    GetClientRect(hWnd, &bufferRT);
+    BitBlt(MemDC, 0, 0, bufferRT.right, bufferRT.bottom, hdc, 0, 0, SRCCOPY);
+    SelectObject(hdc, oldBackBit);
+    DeleteObject(BackBit);
+    DeleteDC(hdc);
     EndPaint(hWnd, &ps);
-
+    
 }
 // 정보 대화 상자의 메시지 처리기입니다.
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)

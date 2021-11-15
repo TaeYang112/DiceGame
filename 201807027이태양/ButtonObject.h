@@ -28,5 +28,6 @@ private:
 
 	function<void(HDC hdc)> DrawFunction;
 
+	BOOL bCircle;
 };
 
