@@ -26,7 +26,7 @@ INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 void                OnPaint(HWND hWnd);         // WM_PAINT 발생시 호출. WM_PAINT의 역할을 함
 
 // 전역변수
-GameHandler GHnd;                               // 게임 핸들러
+GameHandler *GHnd;                               // 게임 핸들러
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -134,6 +134,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 //
 
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
@@ -158,25 +159,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         
     case WM_MOUSEMOVE:
     {
-        GHnd.SetMousePos(LOWORD(lParam), HIWORD(lParam));
+        GHnd->SetMousePos(LOWORD(lParam), HIWORD(lParam));
         
         if (DEBUG_MODE)
         {
             RECT Eraser = {800,0,950,20 };
            InvalidateRect(hWnd, &Eraser, FALSE);
         }
-        if (GHnd.IsDragging())
+        if (GHnd->IsDragging())
         {
-            GHnd.OnMouseMoved(hWnd);
+            GHnd->OnMouseMoved();
         }
     }
     break;
 
     case WM_LBUTTONDOWN:
-        GHnd.OnMouseClicked(hWnd,LOWORD(lParam),HIWORD(lParam));
+        GHnd->OnMouseClicked(LOWORD(lParam),HIWORD(lParam));
         break;
     case WM_LBUTTONUP:
-        GHnd.OnMouseReleased(hWnd, LOWORD(lParam), HIWORD(lParam));
+        GHnd->OnMouseReleased(LOWORD(lParam), HIWORD(lParam));
     case WM_PAINT:
 
 
@@ -186,7 +187,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         PostQuitMessage(0);
         break;
     case WM_CREATE:
-        
+        GHnd = new GameHandler(hWnd);
+
         break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
@@ -213,13 +215,13 @@ void OnPaint(HWND hWnd)
     if (DEBUG_MODE)                             //마우스 좌표를 출력
     {
         WCHAR mouse_position[20];
-        POINT pos = GHnd.GetMousePos();
+        POINT pos = GHnd->GetMousePos();
         wsprintfW(mouse_position, L"x = %d   y = %d", pos.x, pos.y);
         TextOut(hdc, 800, 0, mouse_position, lstrlenW(mouse_position));
     }
 
 
-    GHnd.DrawFrame(hWnd, hdc);
+    GHnd->DrawFrame(hdc);
 
     // 더블버퍼링 끝
     GetClientRect(hWnd, &bufferRT);

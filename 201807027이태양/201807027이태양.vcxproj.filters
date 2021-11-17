@@ -36,6 +36,9 @@
     <ClInclude Include="DiceBase.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="MonsterBase.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="201807027이태양.cpp">
@@ -48,6 +51,9 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="DiceBase.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MonsterBase.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

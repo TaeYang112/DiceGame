@@ -40,9 +40,12 @@ BOOL DiceBase::operator==(const DiceBase &Dice2)
 
 void DiceBase::DrawDice(HWND hWnd, HDC hdc)
 {
-	//  색 변경
-	COLORREF o_PenColor = SetDCPenColor(hdc, Color);
-	COLORREF o_BrushColor = SetDCBrushColor(hdc, Color);	
+	
+	HPEN OldPen =  (HPEN)SelectObject(hdc, GetStockObject(DC_PEN));
+	HBRUSH OldBrush = (HBRUSH)SelectObject(hdc, GetStockObject(DC_BRUSH));
+	COLORREF OldPen_Color = SetDCPenColor(hdc, Color);
+	COLORREF OldBrush_Color = SetDCBrushColor(hdc, Color);
+	
 
 	COLORREF BColor = (IsSelected == FALSE) ? RGB(255, 255, 255) : RGB(230, 230, 230);	// 드래그중인 객체(원본) 라면 회색
 
@@ -58,7 +61,7 @@ void DiceBase::DrawDice(HWND hWnd, HDC hdc)
 	RoundRect(hdc, x + DICE_BOLD, y + DICE_BOLD, x + 70 - DICE_BOLD, y + 70 - DICE_BOLD, 20, 20);
 
 
-
+	// 주사위 눈
 	SetDCPenColor(hdc, Color);
 	SetDCBrushColor(hdc, Color);
 	switch (DiceEye)
@@ -106,8 +109,10 @@ void DiceBase::DrawDice(HWND hWnd, HDC hdc)
 
 
 	//종료
-	SetDCBrushColor(hdc, o_BrushColor);
-	SetDCPenColor(hdc, o_PenColor);
+	SetDCBrushColor(hdc, OldBrush_Color);
+	SetDCPenColor(hdc, OldPen_Color);
+	SelectObject(hdc, OldPen);
+	SelectObject(hdc, OldBrush);
 }
 
 

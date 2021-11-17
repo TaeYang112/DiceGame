@@ -2,20 +2,25 @@
 #include "GameHandler.h"
 #include "resource.h"
 #include "DiceBase.h"
+#include "MonsterBase.h"
 #include <ctime>
 #include <cstdlib>
 
-GameHandler::GameHandler()
+DWORD WINAPI MoveMonster(LPVOID Param); 
+HWND g_hWnd;
+GameHandler::GameHandler(HWND hWnd)
 {
     MousePos = { 0,0 };
     oldPen = nullptr;
     oldBrush = nullptr;
     DraggingDice = nullptr;
     DiceCount = 0;
+    g_hWnd = hWnd;
 
     v_DiceArr.assign(15, nullptr);
     bDragging = FALSE;
 
+    srand((unsigned int)time(NULL));
 
     // 구매버튼
     Purchase.SetBounds(305, 450, 405, 550); 
@@ -33,6 +38,7 @@ GameHandler::GameHandler()
             v_DiceArr[r] = make_shared<DiceBase>(r, 1);
             v_DiceArr[r]->ReDraw(hWnd);
             DiceCount++;
+                l_MonsterArr.push_back(make_shared<MonsterBase>(90));
         });
     Purchase.SetDrawAtion([this](HDC hdc)
         {
@@ -42,16 +48,16 @@ GameHandler::GameHandler()
     v_ButtonArr.push_back(Purchase);
     
 
+    //디버그
+    
 
-    srand((unsigned int)time(NULL));
 
+    CreateThread(NULL, 0, MoveMonster, &l_MonsterArr, 0, NULL);
 
-}
-
-GameHandler::~GameHandler()
-{
 
 }
+
+
 POINT GameHandler::GetMousePos() const
 {
 	return MousePos;
@@ -63,14 +69,16 @@ void GameHandler::SetMousePos(int x, int y)
 	MousePos.y = y;
 }
 
-void GameHandler::DrawFrame(HWND hWnd, HDC hdc)
+void GameHandler::DrawFrame(HDC hdc)
 {
     // 현재 HINSTANCE
-    HINSTANCE hInst = (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE);    
+    HINSTANCE hInst = (HINSTANCE)GetWindowLong(g_hWnd, GWL_HINSTANCE);    
 
     // 간편한 색 변경을 위해 DC_PEN 사용
     oldPen = (HPEN)SelectObject(hdc, GetStockObject(DC_PEN));                   
     oldBrush = (HBRUSH)SelectObject(hdc, GetStockObject(DC_BRUSH));
+
+    SetBkMode(hdc, TRANSPARENT);    // 출력되는 모든 글자의 배경이 투명해짐
 
     // 게임 테두리 그림자
     SetDCColor(hdc, RGB(200,200,200), NULL);
@@ -158,19 +166,24 @@ void GameHandler::DrawFrame(HWND hWnd, HDC hdc)
     SetDCColor(hdc, RGB(220, 220, 220), NULL);
     RoundRect(hdc, 135, 575, 575, 680, 20, 20);
 
+    // 몬스터
+    for (auto it = l_MonsterArr.rbegin(); it != l_MonsterArr.rend(); it++)
+    {
+        (*it)->DrawMonster(g_hWnd, hdc);
+    }
 
 
     //주사위
     for (int i = 0; i < 15; i++)
     {
         if (v_DiceArr[i] == nullptr) continue;
-        v_DiceArr[i]->DrawDice(hWnd, hdc);
+        v_DiceArr[i]->DrawDice(g_hWnd, hdc);
     }
     
     // 드래그중인 임시 주사위
     if (IsDragging() == TRUE)
     {
-        DraggingDice->DrawDice(hWnd, hdc);
+        DraggingDice->DrawDice(g_hWnd, hdc);
     }
 
     SelectObject(hdc, oldPen);
@@ -199,14 +212,14 @@ void GameHandler::ClearDCColor(HDC hdc)
     SetDCPenColor(hdc, RGB(0, 0, 0));
 }
 
-void GameHandler::OnMouseClicked(HWND hWnd,int x, int y)  // WM_LBUTTONDOWN 에서 호출
+void GameHandler::OnMouseClicked(int x, int y)  // WM_LBUTTONDOWN 에서 호출
 {
     
     for (int i = 0; i < (int)v_ButtonArr.size(); i++)   
     {
         if (v_ButtonArr[i].IsOverlappedPoint(x, y))     // 클릭한 위치가 버튼의 범위 내에 있을경우 참
         {
-            v_ButtonArr[i].OnClickedObject(hWnd);       // 버튼에 등록한 함수를 실행
+            v_ButtonArr[i].OnClickedObject(g_hWnd);       // 버튼에 등록한 함수를 실행
         }
     }
     for (int i = 0; i < 15; i++)
@@ -219,9 +232,10 @@ void GameHandler::OnMouseClicked(HWND hWnd,int x, int y)  // WM_LBUTTONDOWN 에서
                 DraggedDice = v_DiceArr[i].get();             // 원본 객체 주소 저장, 원본객체는 가만히 있음
 
                 DraggingDice = make_unique<DiceBase>(*DraggedDice);     // 스마트 포인터 이용하여 클릭한 다이스를 복사 생성 / 마우스에 드래깅되는 객체
+                DraggingDice->MoveToMouse(g_hWnd, GetMousePos());
 
                 DraggedDice->SetSelected(TRUE);
-                DraggedDice->ReDraw(hWnd);
+                DraggedDice->ReDraw(g_hWnd);                            
                 bDragging = TRUE;
 
                 break;
@@ -230,14 +244,14 @@ void GameHandler::OnMouseClicked(HWND hWnd,int x, int y)  // WM_LBUTTONDOWN 에서
     }
 }
 
-void GameHandler::OnMouseMoved(HWND hWnd)
+void GameHandler::OnMouseMoved()
 {
     if (DraggingDice == nullptr) return;
-    DraggingDice->MoveToMouse(hWnd, GetMousePos());
+    DraggingDice->MoveToMouse(g_hWnd, GetMousePos());
 
 }
 
-void GameHandler::OnMouseReleased(HWND hWnd, int x, int y)  // WM_LBUTTONUP 에서 호출
+void GameHandler::OnMouseReleased(int x, int y)  // WM_LBUTTONUP 에서 호출
 {
     if (IsDragging() == TRUE)       // 드래그중이였다면
     {
@@ -278,7 +292,7 @@ void GameHandler::OnMouseReleased(HWND hWnd, int x, int y)  // WM_LBUTTONUP 에서
 
         DraggedDice = nullptr;                              
 
-        InvalidateRect(hWnd, NULL, FALSE);
+        InvalidateRect(g_hWnd, NULL, FALSE);
     }
 }
 
@@ -287,3 +301,19 @@ BOOL GameHandler::IsDragging() const
     return bDragging;
 }
 
+DWORD WINAPI MoveMonster(LPVOID Param)
+{
+    list<shared_ptr<MonsterBase>> *l_MonsterArr = (list<shared_ptr<MonsterBase>>*)Param;
+   
+    while (1)
+    {
+       
+        for (auto it = l_MonsterArr->begin(); it != l_MonsterArr->end(); it++)
+        {
+            it->get()->MoveNextPoint();
+        }
+        InvalidateRect(g_hWnd, NULL, FALSE);
+        Sleep(25);
+    }
+    return 0;
+}

@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <list>
 #include "framework.h"
 #include "ButtonObject.h" 
 #include <memory>
@@ -7,6 +8,7 @@
 using namespace std;
 
 class DiceBase;
+class MonsterBase;
 class GameHandler
 {
 
@@ -18,6 +20,7 @@ private:
 
 	vector<ButtonObject> v_ButtonArr;
 	vector<shared_ptr<DiceBase>> v_DiceArr;
+	list<shared_ptr<MonsterBase>> l_MonsterArr;	// 중간에서 삭제하기 위해 리스트 사용
 
 	ButtonObject Purchase;						// 주사위 구매버튼
 
@@ -27,23 +30,24 @@ private:
 
 	int DiceCount;
 public:
-	GameHandler();
-	~GameHandler();
+	GameHandler(HWND hWnd);
 
 	POINT GetMousePos() const;
 	void SetMousePos(int x, int y);
 
-	void DrawFrame(HWND hWnd, HDC hdc);
+	void DrawFrame(HDC hdc);
 
 	void DrawLine(HDC hdc, int x, int y, int x2, int y2);
 
 	void SetDCColor(HDC hdc, COLORREF B_Color, COLORREF P_Color);
 	void ClearDCColor(HDC hdc);
 
-	void OnMouseClicked(HWND hWnd, int x, int y);
+	void OnMouseClicked(int x, int y);
 
 
 	BOOL IsDragging() const;
-	void OnMouseMoved(HWND hWnd);
-	void OnMouseReleased(HWND hWnd, int x, int y);
+	void OnMouseMoved();
+	void OnMouseReleased(int x, int y);
+
+	
 };

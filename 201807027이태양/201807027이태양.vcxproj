@@ -144,6 +144,7 @@
     <ClInclude Include="DiceBase.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="GameHandler.h" />
+    <ClInclude Include="MonsterBase.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -152,6 +153,7 @@
     <ClCompile Include="ButtonObject.cpp" />
     <ClCompile Include="DiceBase.cpp" />
     <ClCompile Include="GameHandler.cpp" />
+    <ClCompile Include="MonsterBase.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="201807027이태양.rc" />
