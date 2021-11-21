@@ -7,6 +7,7 @@ MonsterBase::MonsterBase(int HP)
 	Speed = 2;
 	MoveDir = 0;
 	Location = {23,388};	// 몬스터 스폰 위치
+	bDead = FALSE;
 }
 
 
@@ -75,8 +76,19 @@ BOOL MonsterBase::MoveNextPoint()
 			MoveDir = 3;
 		break;
 	default:
+		return TRUE;
 		break;
 	}
-	return 0;
+	return FALSE;
+}
+
+BOOL MonsterBase::IsDead() const
+{
+	return bDead;
+}
+
+void MonsterBase::SetDead()
+{
+	bDead = TRUE;
 }
 

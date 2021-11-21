@@ -28,7 +28,7 @@ private:
 	DiceBase* DraggedDice;						// 드래그 되었던 객체의 주소를 임시로 저장함
 	BOOL bDragging;								// 현재 드래그중인지 상태정보를 갖는 변수. TRUE 인동안 DraggedDice != nullptr 보장해야함
 
-	int DiceCount;
+	int DiceCount;								// 현재 다이스 개수. 슬롯에 빈공간이 있는지 체크하기 위해 사용
 public:
 	GameHandler(HWND hWnd);
 

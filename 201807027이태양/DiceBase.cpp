@@ -147,11 +147,10 @@ void DiceBase::ReDraw(HWND hWnd)
 	InvalidateRect(hWnd, &rect, FALSE);
 }
 
-void DiceBase::MoveToMouse(HWND hWnd, POINT point)
+void DiceBase::MoveToMouse(POINT point)
 {
 	Location.x = point.x - 35;		// point에 주사위 정중앙이 오게 함
 	Location.y = point.y - 35;
-	InvalidateRect(hWnd, NULL, FALSE);
 
 }
 

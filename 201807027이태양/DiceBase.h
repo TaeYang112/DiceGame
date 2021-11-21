@@ -27,7 +27,7 @@ public:
 	bool IsOverlappedPoint(const int x, const int y) const;
 	void SetSelected(BOOL IsSelected);
 	void ReDraw(HWND hWnd);
-	void MoveToMouse(HWND hWnd, POINT point);
+	void MoveToMouse(POINT point);
 	int GetEye() const;
 	BOOL operator==(const DiceBase& Dice2);
 };

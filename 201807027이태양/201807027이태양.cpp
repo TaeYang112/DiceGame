@@ -189,6 +189,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_CREATE:
         GHnd = new GameHandler(hWnd);
 
+
         break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);

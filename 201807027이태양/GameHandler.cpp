@@ -7,6 +7,9 @@
 #include <cstdlib>
 
 DWORD WINAPI MoveMonster(LPVOID Param); 
+DWORD WINAPI MonsterTr(LPVOID Param);
+DWORD WINAPI IDRTimer(LPVOID Param);
+
 HWND g_hWnd;
 GameHandler::GameHandler(HWND hWnd)
 {
@@ -38,7 +41,9 @@ GameHandler::GameHandler(HWND hWnd)
             v_DiceArr[r] = make_shared<DiceBase>(r, 1);
             v_DiceArr[r]->ReDraw(hWnd);
             DiceCount++;
-                l_MonsterArr.push_back(make_shared<MonsterBase>(90));
+                
+            l_MonsterArr.push_back(make_shared<MonsterBase>(90));
+            CreateThread(NULL, 0, MonsterTr, l_MonsterArr.back().get(), 0, NULL);
         });
     Purchase.SetDrawAtion([this](HDC hdc)
         {
@@ -46,13 +51,14 @@ GameHandler::GameHandler(HWND hWnd)
             Ellipse(hdc, 305, 450, 405, 550);
         });
     v_ButtonArr.push_back(Purchase);
-    
+
+
+    CreateThread(NULL, 0, IDRTimer, NULL, 0, NULL);
 
     //디버그
     
 
-
-    CreateThread(NULL, 0, MoveMonster, &l_MonsterArr, 0, NULL);
+    
 
 
 }
@@ -166,10 +172,18 @@ void GameHandler::DrawFrame(HDC hdc)
     SetDCColor(hdc, RGB(220, 220, 220), NULL);
     RoundRect(hdc, 135, 575, 575, 680, 20, 20);
 
-    // 몬스터
-    for (auto it = l_MonsterArr.rbegin(); it != l_MonsterArr.rend(); it++)
+    
+    // 몬스터 
+    auto it = l_MonsterArr.rbegin();
+    while (it != l_MonsterArr.rend())                   // 먼저 소환한 몬스터가 겹친 몬스터중 맨앞에 위치
     {
+        if ((*it)->IsDead())                            // 죽었으면
+        {
+            l_MonsterArr.erase(std::next(it).base());   // 리스트에서 제거
+            continue;
+        }
         (*it)->DrawMonster(g_hWnd, hdc);
+        it++;
     }
 
 
@@ -232,7 +246,7 @@ void GameHandler::OnMouseClicked(int x, int y)  // WM_LBUTTONDOWN 에서 호출
                 DraggedDice = v_DiceArr[i].get();             // 원본 객체 주소 저장, 원본객체는 가만히 있음
 
                 DraggingDice = make_unique<DiceBase>(*DraggedDice);     // 스마트 포인터 이용하여 클릭한 다이스를 복사 생성 / 마우스에 드래깅되는 객체
-                DraggingDice->MoveToMouse(g_hWnd, GetMousePos());
+                DraggingDice->MoveToMouse(GetMousePos());
 
                 DraggedDice->SetSelected(TRUE);
                 DraggedDice->ReDraw(g_hWnd);                            
@@ -247,8 +261,8 @@ void GameHandler::OnMouseClicked(int x, int y)  // WM_LBUTTONDOWN 에서 호출
 void GameHandler::OnMouseMoved()
 {
     if (DraggingDice == nullptr) return;
-    DraggingDice->MoveToMouse(g_hWnd, GetMousePos());
-
+    DraggingDice->MoveToMouse(GetMousePos());
+    //InvalidateRect(g_hWnd, NULL, FALSE);
 }
 
 void GameHandler::OnMouseReleased(int x, int y)  // WM_LBUTTONUP 에서 호출
@@ -292,7 +306,7 @@ void GameHandler::OnMouseReleased(int x, int y)  // WM_LBUTTONUP 에서 호출
 
         DraggedDice = nullptr;                              
 
-        InvalidateRect(g_hWnd, NULL, FALSE);
+        //InvalidateRect(g_hWnd, NULL, FALSE);
     }
 }
 
@@ -301,6 +315,7 @@ BOOL GameHandler::IsDragging() const
     return bDragging;
 }
 
+// 세마포 사용해보려고 미사용, 스레드 1개로 모든 몬스터 움직임
 DWORD WINAPI MoveMonster(LPVOID Param)
 {
     list<shared_ptr<MonsterBase>> *l_MonsterArr = (list<shared_ptr<MonsterBase>>*)Param;
@@ -312,8 +327,34 @@ DWORD WINAPI MoveMonster(LPVOID Param)
         {
             it->get()->MoveNextPoint();
         }
+        Sleep(16);
+    }
+    return 0;
+}
+// 사용중, 몬스터마다 스레드 부여
+DWORD WINAPI MonsterTr(LPVOID Param)
+{
+   MonsterBase* Monster = (MonsterBase*)Param;
+   while (1)
+    {
+        BOOL bMoveEnd = Monster->MoveNextPoint();   // 몬스터 이동. 만약 끝 지점에 도착하면 TRUE 반환
+        
+        if (bMoveEnd) break;
+
+       Sleep(17);
+    }
+    Monster->SetDead();
+    ExitThread(0);
+    return 0;
+}
+
+
+DWORD WINAPI IDRTimer(LPVOID Param)
+{
+    while (1) // 초당 100번 반복
+    {
         InvalidateRect(g_hWnd, NULL, FALSE);
-        Sleep(25);
+        Sleep(10);
     }
     return 0;
 }
