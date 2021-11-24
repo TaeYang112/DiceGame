@@ -7,7 +7,7 @@ MonsterBase::MonsterBase(int HP)
 	Speed = 2;
 	MoveDir = 0;
 	Location = {23,388};	// 몬스터 스폰 위치
-	bDead = FALSE;
+	Status = STATUS::ALIVE;
 }
 
 
@@ -76,21 +76,46 @@ BOOL MonsterBase::MoveNextPoint()
 			MoveDir = 3;
 		break;
 	default:
-		return FALSE;
+		return TRUE;
 		break;
 	}
-	return TRUE;
+	return FALSE;
 }
 
 
 
-BOOL MonsterBase::IsDead() const
+STATUS MonsterBase::GetStatus() const
 {
-	return bDead;
+	return Status;
 }
 
-void MonsterBase::SetDead()
+void MonsterBase::SetStatus(STATUS newStatus)
 {
-	bDead = TRUE;
+	Status = newStatus;
 }
 
+BOOL MonsterBase::IsOverlappedPoint(const POINT TargetPoint) const
+{
+
+	const int cur_x = Location.x;
+	const int cur_y = Location.y;
+
+	if (Location.x <= TargetPoint.x && Location.x + 64 >= TargetPoint.x)	// 주사위 사각형 안에 TargetPoint가 있는지 검사
+	{
+		if (Location.y <= TargetPoint.y && Location.y + 64 >= TargetPoint.y)
+		{
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+STATUS MonsterBase::HitByDice(int Power)
+{
+	if (HP -= Power <= 0)
+	{
+		HP = 0;
+		return STATUS::DEAD;
+	}
+	return STATUS::ALIVE;
+}

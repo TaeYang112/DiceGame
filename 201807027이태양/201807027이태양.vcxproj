@@ -146,7 +146,7 @@
     <ClInclude Include="GameHandler.h" />
     <ClInclude Include="MonsterBase.h" />
     <ClInclude Include="ObjectBase.h" />
-    <ClInclude Include="Projectile.h" />
+    <ClInclude Include="ProjectileBase.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -157,7 +157,7 @@
     <ClCompile Include="GameHandler.cpp" />
     <ClCompile Include="MonsterBase.cpp" />
     <ClCompile Include="ObjectBase.cpp" />
-    <ClCompile Include="Projectile.cpp" />
+    <ClCompile Include="ProjectileBase.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="201807027이태양.rc" />

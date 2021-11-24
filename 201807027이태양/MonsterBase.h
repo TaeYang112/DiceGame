@@ -1,6 +1,12 @@
 #pragma once
 #include "framework.h"
 #include "ObjectBase.h"
+
+enum class STATUS {
+	ALIVE = 0,	// »ì¾ÆÀÖÀ½
+	ARRIVAL,	// µµÂø
+	DEAD		// Á×À½
+};
 class MonsterBase : public ObjectBase
 {
 private:
@@ -8,13 +14,15 @@ private:
 	int Speed;
 	int MoveDir;
 	static HFONT Font;
-	BOOL bDead;
+	STATUS Status;				
 
 public:
 	MonsterBase(int HP);
 	void DrawObject(HDC hdc);
 	BOOL MoveNextPoint();
-	BOOL IsDead() const;
-	void  SetDead();
+	STATUS GetStatus() const;
+	void  SetStatus(STATUS newStatus);
+	BOOL IsOverlappedPoint(const POINT TargetPoint) const;
+	STATUS HitByDice(int Power);
 };
 

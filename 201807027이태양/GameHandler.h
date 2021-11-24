@@ -10,6 +10,7 @@ using namespace std;
 
 class DiceBase;
 class MonsterBase;
+class ProjectileBase;
 class GameHandler
 {
 
@@ -19,9 +20,10 @@ private:
 	HPEN oldPen;																			
 	HBRUSH oldBrush;
 
-	vector<ButtonObject> v_ButtonArr;
-	vector<shared_ptr<DiceBase>> v_DiceArr;
-	list<shared_ptr<MonsterBase>> l_MonsterArr;	// 중간에서 삭제하기 위해 리스트 사용
+	vector<ButtonObject> v_Button;
+	vector<shared_ptr<DiceBase>> v_Dice;
+	list<shared_ptr<MonsterBase>> l_Monster;	// 중간에서 삭제하기 위해 리스트 사용
+	list<shared_ptr<ProjectileBase>> l_Projectile;
 
 	ButtonObject Purchase;						// 주사위 구매버튼
 

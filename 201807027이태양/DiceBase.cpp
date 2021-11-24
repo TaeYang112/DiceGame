@@ -11,7 +11,7 @@ DiceBase::DiceBase(int slot, int eye)
 	IsSelected = FALSE;
 	DiceType = 0;
 
-	DiceEye =   eye <= 6 ? eye : 6;
+	DiceEye =  eye <= 6 ? eye : 6;
 	SetSlot(slot);
 	
 }
