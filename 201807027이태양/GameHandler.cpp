@@ -1,8 +1,10 @@
 
+
 #include "GameHandler.h"
 #include "resource.h"
 #include "DiceBase.h"
 #include "MonsterBase.h"
+#include "ButtonObject.h"
 #include <ctime>
 #include <cstdlib>
 
@@ -11,7 +13,7 @@ DWORD WINAPI MonsterTr(LPVOID Param);
 DWORD WINAPI IDRTimer(LPVOID Param);
 
 HWND g_hWnd;
-GameHandler::GameHandler(HWND hWnd)
+GameHandler::GameHandler(HWND hWnd) : Purchase({ 305,450 }, 100, 100)
 {
     MousePos = { 0,0 };
     oldPen = nullptr;
@@ -26,7 +28,6 @@ GameHandler::GameHandler(HWND hWnd)
     srand((unsigned int)time(NULL));
 
     // 구매버튼
-    Purchase.SetBounds(305, 450, 405, 550); 
     Purchase.SetClickAction([this](HWND hWnd) 
         {
             if (DiceCount >= 15) return; // 주사위 자리가 없다면 리턴
@@ -53,7 +54,7 @@ GameHandler::GameHandler(HWND hWnd)
     v_ButtonArr.push_back(Purchase);
 
 
-    CreateThread(NULL, 0, IDRTimer, NULL, 0, NULL);
+    IDRHandle =  CreateThread(NULL, 0, IDRTimer, NULL, 0, NULL);
 
     //디버그
     
@@ -63,7 +64,10 @@ GameHandler::GameHandler(HWND hWnd)
 
 }
 
-
+GameHandler::~GameHandler()
+{
+    SuspendThread(IDRHandle);       // InvalidRect 쓰레드 종료
+}
 POINT GameHandler::GetMousePos() const
 {
 	return MousePos;
@@ -182,7 +186,7 @@ void GameHandler::DrawFrame(HDC hdc)
             l_MonsterArr.erase(std::next(it).base());   // 리스트에서 제거
             continue;
         }
-        (*it)->DrawMonster(g_hWnd, hdc);
+        (*it)->DrawObject(hdc);
         it++;
     }
 
@@ -191,13 +195,13 @@ void GameHandler::DrawFrame(HDC hdc)
     for (int i = 0; i < 15; i++)
     {
         if (v_DiceArr[i] == nullptr) continue;
-        v_DiceArr[i]->DrawDice(g_hWnd, hdc);
+        v_DiceArr[i]->DrawObject(hdc);
     }
     
     // 드래그중인 임시 주사위
     if (IsDragging() == TRUE)
     {
-        DraggingDice->DrawDice(g_hWnd, hdc);
+        DraggingDice->DrawObject(hdc);
     }
 
     SelectObject(hdc, oldPen);
@@ -239,7 +243,7 @@ void GameHandler::OnMouseClicked(int x, int y)  // WM_LBUTTONDOWN 에서 호출
     for (int i = 0; i < 15; i++)
     {
         if (v_DiceArr[i] == nullptr) continue;
-        if (v_DiceArr[i]->IsOverlappedPoint(x, y))      // 클릭한 위치가 주사위의 범위 내에 있을경우 참
+        if (v_DiceArr[i]->IsOverlappedPoint({ x,y }))      // 클릭한 위치가 주사위의 범위 내에 있을경우 참
         {
             if (bDragging == FALSE)                    // 현재 드래그중이 아니라면
             {
@@ -279,14 +283,14 @@ void GameHandler::OnMouseReleased(int x, int y)  // WM_LBUTTONUP 에서 호출
         DraggedDice->SetSelected(FALSE);            // 색상 돌려놓음
         
 
-        if (DraggedDice->GetEye() < 6)        // 눈이 6이상 주사위 제외
+        if (DraggedDice->GetEye() < 6)        // 눈이 6이하의 주사위 일때
         {
 
             for (int i = 0; i < 15; i++)     // 모든 주사위 탐색
             {
 
                 if (v_DiceArr[i] == nullptr) continue;
-                if (v_DiceArr[i]->IsOverlappedPoint(x, y))      // 마우스를 떼었던 위치가 주사위와 겹친다면
+                if (v_DiceArr[i]->IsOverlappedPoint({ x,y }))      // 마우스를 떼었던 위치가 주사위와 겹친다면
                 {
                     if (*v_DiceArr[i] == *DraggedDice)          // 타입과 주사위 눈이 서로 같을 경우
                     {
@@ -337,7 +341,7 @@ DWORD WINAPI MonsterTr(LPVOID Param)
    MonsterBase* Monster = (MonsterBase*)Param;
    while (1)
     {
-        BOOL bMoveEnd = Monster->MoveNextPoint();   // 몬스터 이동. 만약 끝 지점에 도착하면 TRUE 반환
+        BOOL bMoveEnd = !Monster->MoveNextPoint();   // 몬스터 이동. 만약 끝 지점에 도착하면 FALSE 반환
         
         if (bMoveEnd) break;
 

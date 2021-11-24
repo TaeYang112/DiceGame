@@ -39,6 +39,12 @@
     <ClInclude Include="MonsterBase.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="Projectile.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectBase.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="201807027이태양.cpp">
@@ -56,6 +62,12 @@
     <ClCompile Include="MonsterBase.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Projectile.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectBase.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="201807027이태양.rc">
@@ -67,15 +79,6 @@
       <Filter>리소스 파일</Filter>
     </Image>
     <Image Include="201807027이태양.ico">
-      <Filter>리소스 파일</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\제목없음2.png">
-      <Filter>리소스 파일</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\태양\VCC과제\배경.bmp">
-      <Filter>리소스 파일</Filter>
-    </Image>
-    <Image Include="bitmap2.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
   </ItemGroup>

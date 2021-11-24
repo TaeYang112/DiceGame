@@ -1,15 +1,14 @@
 #pragma once
 #include "framework.h"
 #include <functional>
+#include "ObjectBase.h"
 
 using namespace std;
 
-class ButtonObject
+class ButtonObject : ObjectBase
 {
 public:
-	ButtonObject();
-
-	void SetBounds(int x1, int y1, int x2, int y2);
+	ButtonObject(POINT Location, int width,int height);
 
 	void SetClickAction(function<void(HWND hWnd)> ClickFunction);
 
@@ -21,8 +20,8 @@ public:
 
 	bool IsOverlappedPoint(int x, int y);
 private:
-	int x1, x2;
-	int y1, y2;
+
+	POINT Location2;
 
 	function<void(HWND hWnd)> ClickFunction;
 

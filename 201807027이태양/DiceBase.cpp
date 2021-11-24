@@ -38,7 +38,7 @@ BOOL DiceBase::operator==(const DiceBase &Dice2)
 	return FALSE;
 }
 
-void DiceBase::DrawDice(HWND hWnd, HDC hdc)
+void DiceBase::DrawObject(HDC hdc)
 {
 	
 	HPEN OldPen =  (HPEN)SelectObject(hdc, GetStockObject(DC_PEN));
@@ -118,15 +118,15 @@ void DiceBase::DrawDice(HWND hWnd, HDC hdc)
 
 
 
-bool DiceBase::IsOverlappedPoint(const int x, const int y) const
+bool DiceBase::IsOverlappedPoint(const POINT TargetPoint) const
 {
 
 	const int cur_x = Location.x;
 	const int cur_y = Location.y;
 
-	if ( cur_x<= x && cur_x + 70 >= x)
+	if (Location.x <= TargetPoint.x && Location.x + 70 >= TargetPoint.x)	// 주사위 사각형 안에 TargetPoint가 있는지 검사
 	{
-		if (cur_y <= y && cur_y + 70 >= y)
+		if (Location.y <= TargetPoint.y && Location.y + 70 >= TargetPoint.y)
 		{
 			return true;
 		}

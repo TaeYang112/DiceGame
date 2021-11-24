@@ -1,3 +1,4 @@
+
 #pragma once
 #include <vector>
 #include <list>
@@ -29,8 +30,10 @@ private:
 	BOOL bDragging;								// 현재 드래그중인지 상태정보를 갖는 변수. TRUE 인동안 DraggedDice != nullptr 보장해야함
 
 	int DiceCount;								// 현재 다이스 개수. 슬롯에 빈공간이 있는지 체크하기 위해 사용
+	HANDLE IDRHandle;
 public:
 	GameHandler(HWND hWnd);
+	~GameHandler();
 
 	POINT GetMousePos() const;
 	void SetMousePos(int x, int y);

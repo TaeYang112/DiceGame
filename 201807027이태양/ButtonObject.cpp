@@ -3,20 +3,17 @@
 
 
 
-ButtonObject::ButtonObject() : x1(0), x2(0), y1(0), y2(0)
+ButtonObject::ButtonObject(POINT Location, int width, int height)
 {
+	this->Location = Location;
+	Location2.x = Location.x + width;
+	Location2.y = Location.y + height;
+
 	ClickFunction = [](HWND hWnd){};		// 람다함수 초기화
 	DrawFunction = [](HDC hdc){};
 	bCircle = FALSE;
 }
 
-void ButtonObject::SetBounds(int x1, int y1, int x2, int y2)
-{
-	this->x1 = x1;
-	this->y1 = y1;
-	this->x2 = x2;
-	this->y2 = y2;
-}
 
 void ButtonObject::SetClickAction(function<void(HWND hWnd)> ClickFunction)
 {
@@ -42,9 +39,9 @@ void ButtonObject::DrawObject(HDC hdc)
 bool ButtonObject::IsOverlappedPoint(int x, int y)
 {
 
-	if (x1 <= x && x2 >= x)
+	if (Location.x <= x && Location2.x >= x)
 	{
-		if (y1 <= y && y2 >= y)
+		if (Location.y <= y && Location2.y >= y)
 		{
 			return true;
 		}

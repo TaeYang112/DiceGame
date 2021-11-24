@@ -145,6 +145,8 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="GameHandler.h" />
     <ClInclude Include="MonsterBase.h" />
+    <ClInclude Include="ObjectBase.h" />
+    <ClInclude Include="Projectile.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -154,15 +156,14 @@
     <ClCompile Include="DiceBase.cpp" />
     <ClCompile Include="GameHandler.cpp" />
     <ClCompile Include="MonsterBase.cpp" />
+    <ClCompile Include="ObjectBase.cpp" />
+    <ClCompile Include="Projectile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="201807027이태양.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\..\..\Desktop\제목없음2.png" />
-    <Image Include="..\..\..\..\Desktop\태양\VCC과제\배경.bmp" />
     <Image Include="201807027이태양.ico" />
-    <Image Include="bitmap2.bmp" />
     <Image Include="small.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

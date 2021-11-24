@@ -11,7 +11,7 @@ MonsterBase::MonsterBase(int HP)
 }
 
 
-void MonsterBase::DrawMonster(HWND hWnd, HDC hdc)
+void MonsterBase::DrawObject(HDC hdc)
 {
 	
 	const int x = Location.x;
@@ -76,11 +76,13 @@ BOOL MonsterBase::MoveNextPoint()
 			MoveDir = 3;
 		break;
 	default:
-		return TRUE;
+		return FALSE;
 		break;
 	}
-	return FALSE;
+	return TRUE;
 }
+
+
 
 BOOL MonsterBase::IsDead() const
 {

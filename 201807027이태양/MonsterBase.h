@@ -1,20 +1,19 @@
 #pragma once
 #include "framework.h"
-class MonsterBase
+#include "ObjectBase.h"
+class MonsterBase : public ObjectBase
 {
 private:
 	int HP;
 	int Speed;
 	int MoveDir;
-	POINT Location;
 	static HFONT Font;
 	BOOL bDead;
 
 public:
 	MonsterBase(int HP);
-	void DrawMonster(HWND hWnd, HDC hdc);
+	void DrawObject(HDC hdc);
 	BOOL MoveNextPoint();
-
 	BOOL IsDead() const;
 	void  SetDead();
 };
