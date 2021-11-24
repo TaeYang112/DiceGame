@@ -24,6 +24,8 @@ BOOL Projectile::MoveToTarget(MonsterBase* Target)
 
 	Location.x = Unit_vec.x * Speed;
 	Location.y = Unit_vec.y * Speed;
+
+	return FALSE;
 }
 
 void Projectile::DrawObject(HDC hdc)

@@ -1,5 +1,3 @@
-
-
 #include "GameHandler.h"
 #include "resource.h"
 #include "DiceBase.h"
@@ -81,8 +79,6 @@ void GameHandler::SetMousePos(int x, int y)
 
 void GameHandler::DrawFrame(HDC hdc)
 {
-    // 현재 HINSTANCE
-    HINSTANCE hInst = (HINSTANCE)GetWindowLong(g_hWnd, GWL_HINSTANCE);    
 
     // 간편한 색 변경을 위해 DC_PEN 사용
     oldPen = (HPEN)SelectObject(hdc, GetStockObject(DC_PEN));                   
