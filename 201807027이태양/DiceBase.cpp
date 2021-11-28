@@ -1,16 +1,19 @@
 #include "DiceBase.h"
 #include "GameHandler.h"
+#include "ProjectileBase.h"
+#include <iostream>
 
 
 DiceBase::DiceBase(int slot, int eye)
 {
-	AttackSpeed = 1.0f;
+	AttackSpeed = 0.1f;
 	Color = RGB(0, 0, 0);
 	Location = { 0,0 };
-	Power = 0;
+	Power = 10;
 	IsSelected = FALSE;
 	DiceType = 0;
-
+	TRHandle = NULL;
+	
 	DiceEye =  eye <= 6 ? eye : 6;
 	SetSlot(slot);
 	
@@ -31,11 +34,31 @@ DiceBase::DiceBase(DiceBase &Dice)
 	SetSlot(0);
 }
 
+DiceBase::~DiceBase()
+{
+	cout << "다이스 죽어버렸쓰" << endl;
+}
+
 BOOL DiceBase::operator==(const DiceBase &Dice2)
 {
 	if (this->DiceEye == Dice2.DiceEye) return TRUE;
 	
 	return FALSE;
+}
+
+void DiceBase::SetTRHandle(HANDLE TRHandle)
+{
+	this->TRHandle = TRHandle;
+	if(this->TRHandle != NULL) cout << "쓰레드 정해부렸쓰" << endl;
+}
+
+void DiceBase::StopTr()
+{
+	if (TRHandle != NULL)
+	{
+		cout << "스레드 죽음" << endl;
+		SuspendThread(TRHandle);
+	}
 }
 
 void DiceBase::DrawObject(HDC hdc)
@@ -138,7 +161,7 @@ void DiceBase::SetSelected(BOOL IsSelected)
 {
 	this->IsSelected = IsSelected;
 }
-
+/*
 void DiceBase::ReDraw(HWND hWnd)
 {
 	const int x = Location.x;
@@ -146,7 +169,7 @@ void DiceBase::ReDraw(HWND hWnd)
 	RECT rect = { x,y,x + 70,y + 70 };
 	InvalidateRect(hWnd, &rect, FALSE);
 }
-
+*/
 void DiceBase::MoveToMouse(POINT point)
 {
 	Location.x = point.x - 35;		// point에 주사위 정중앙이 오게 함
@@ -176,4 +199,17 @@ void DiceBase::SetSlot(int slot)
 int DiceBase::GetSlot() const
 {
 	return Slot;
+}
+
+float DiceBase::GetSpeed() const
+{
+	return AttackSpeed;
+}
+
+shared_ptr<ProjectileBase> DiceBase::SpawnProj()
+{
+	POINT CenterLoc = { Location.x + 35, Location.y + 35 };
+	shared_ptr<ProjectileBase> Proj = make_shared<ProjectileBase>(CenterLoc,Power);
+
+	return Proj;
 }

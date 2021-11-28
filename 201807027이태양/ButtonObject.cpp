@@ -9,21 +9,21 @@ ButtonObject::ButtonObject(POINT Location, int width, int height)
 	Location2.x = Location.x + width;
 	Location2.y = Location.y + height;
 
-	ClickFunction = [](HWND hWnd){};		// 람다함수 초기화
+	ClickFunction = [](){};		// 람다함수 초기화
 	DrawFunction = [](HDC hdc){};
 	bCircle = FALSE;
 }
 
 
-void ButtonObject::SetClickAction(function<void(HWND hWnd)> ClickFunction)
+void ButtonObject::SetClickAction(function<void()> ClickFunction)
 {
 	this->ClickFunction = ClickFunction;
 }
 
-void ButtonObject::OnClickedObject(HWND hWnd)
+void ButtonObject::OnClickedObject()
 {
 	
-	ClickFunction(hWnd);
+	ClickFunction();
 }
 
 void ButtonObject::SetDrawAtion(function<void(HDC hdc)> DrawFunction)

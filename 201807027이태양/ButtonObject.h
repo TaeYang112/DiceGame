@@ -10,9 +10,9 @@ class ButtonObject : ObjectBase
 public:
 	ButtonObject(POINT Location, int width,int height);
 
-	void SetClickAction(function<void(HWND hWnd)> ClickFunction);
+	void SetClickAction(function<void()> ClickFunction);
 
-	void OnClickedObject(HWND hWnd);
+	void OnClickedObject();
 
 	void SetDrawAtion(function<void(HDC hdc)> DrawFunction);
 
@@ -23,7 +23,7 @@ private:
 
 	POINT Location2;
 
-	function<void(HWND hWnd)> ClickFunction;
+	function<void()> ClickFunction;
 
 	function<void(HDC hdc)> DrawFunction;
 

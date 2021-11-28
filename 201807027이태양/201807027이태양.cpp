@@ -5,11 +5,22 @@
 #include "201807027이태양.h"
 #include "GameHandler.h"
 #include "iostream"
-#include "string"
+#include <stdio.h>
+#include <cstring>
 
 #define MAX_LOADSTRING 100
-// true일시 현재 마우스의 좌표를 표시함
+
 #define DEBUG_MODE true
+
+
+#if DEBUG_MODE
+#ifdef UNICODE
+#pragma comment(linker, "/entry:wWinMainCRTStartup /subsystem:console")     // 디버그용 콘솔 출력
+#else
+#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
+#endif
+#endif
+
 
 // 전역 변수:
 HINSTANCE hInst;                                // 현재 인스턴스입니다.
@@ -21,6 +32,7 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+DWORD WINAPI IDRTimer(LPVOID Param);
 
 // 사용자 제작 함수
 void                OnPaint(HWND hWnd);         // WM_PAINT 발생시 호출. WM_PAINT의 역할을 함
@@ -108,8 +120,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
 
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, 1090, 780, nullptr, nullptr, hInstance, nullptr);
+   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPED | WS_SYSMENU,
+      CW_USEDEFAULT, 0, 740, 780, nullptr, nullptr, hInstance, nullptr);
 
 
    if (!hWnd)
@@ -134,7 +146,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 //
 
-
+HWND g_hWnd;
+HANDLE IDRHandle;
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
@@ -184,11 +197,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         OnPaint(hWnd);
         break;
     case WM_DESTROY:
+        SuspendThread(IDRHandle);
         PostQuitMessage(0);
         break;
     case WM_CREATE:
-        GHnd = new GameHandler(hWnd);
+        g_hWnd = hWnd;
+        IDRHandle = CreateThread(NULL, 0, IDRTimer, NULL, 0, NULL);
 
+        GHnd = GameHandler::GetInstance();
 
         break;
     default:
@@ -222,7 +238,7 @@ void OnPaint(HWND hWnd)
     }
 
 
-    GHnd->DrawFrame(hdc);
+    GHnd->DrawGame(hdc);
 
     // 더블버퍼링 끝
     GetClientRect(hWnd, &bufferRT);
@@ -253,4 +269,13 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     return (INT_PTR)FALSE;
 }
 
-
+// 초당 100번 InvalidateRect 호출
+DWORD WINAPI IDRTimer(LPVOID Param)
+{
+    while (1)
+    {
+        InvalidateRect(g_hWnd, NULL, FALSE);
+        Sleep(10);
+    }
+    return 0;
+}

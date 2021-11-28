@@ -7,7 +7,7 @@ MonsterBase::MonsterBase(int HP)
 	Speed = 2;
 	MoveDir = 0;
 	Location = {23,388};	// 몬스터 스폰 위치
-	Status = STATUS::ALIVE;
+	Status = STATE::ALIVE;
 }
 
 
@@ -84,12 +84,12 @@ BOOL MonsterBase::MoveNextPoint()
 
 
 
-STATUS MonsterBase::GetStatus() const
+STATE MonsterBase::GetState() const
 {
 	return Status;
 }
 
-void MonsterBase::SetStatus(STATUS newStatus)
+void MonsterBase::SetState(STATE newStatus)
 {
 	Status = newStatus;
 }
@@ -110,12 +110,13 @@ BOOL MonsterBase::IsOverlappedPoint(const POINT TargetPoint) const
 	return FALSE;
 }
 
-STATUS MonsterBase::HitByDice(int Power)
+void MonsterBase::TakeDamage(int Power)
 {
-	if (HP -= Power <= 0)
+	HP -= Power;
+	if (HP <= 0)
 	{
 		HP = 0;
-		return STATUS::DEAD;
+		SetState(STATE::DEAD);
 	}
-	return STATUS::ALIVE;
+	return;
 }

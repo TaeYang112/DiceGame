@@ -3,6 +3,12 @@
 #include "framework.h"
 #include "ObjectBase.h"
 #include "MonsterBase.h"
+
+struct POINTF
+{
+	float x;
+	float y;
+};
 class MonsterBase;
 class ProjectileBase :  public ObjectBase
 {
@@ -11,7 +17,8 @@ protected:
 	COLORREF Color;
 	int Power;
 public:
-	ProjectileBase(int newPower);
+	ProjectileBase(POINT Location, int newPower);
 	BOOL MoveToTarget(MonsterBase* Target);
 	virtual void DrawObject(HDC hdc);
+	int GetPower() const;
 };

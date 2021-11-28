@@ -1,9 +1,9 @@
-
 #pragma once
 #include <vector>
 #include <list>
 #include "framework.h"
 #include "ButtonObject.h" 
+#include "DiceBase.h"
 #include <memory>
 
 using namespace std;
@@ -32,27 +32,39 @@ private:
 	BOOL bDragging;								// 현재 드래그중인지 상태정보를 갖는 변수. TRUE 인동안 DraggedDice != nullptr 보장해야함
 
 	int DiceCount;								// 현재 다이스 개수. 슬롯에 빈공간이 있는지 체크하기 위해 사용
-	HANDLE IDRHandle;
-public:
-	GameHandler(HWND hWnd);
+
+
+	HANDLE Proj_SemaHnd;						// Projectile 리스트에 접근을 관리하는 세마포 핸들
+	HANDLE Monster_SemaHnd;					// Monster 접근 관리 세마포 핸들
+	static GameHandler* Instance;
+private:
+	GameHandler();								// 싱글톤 패턴을 위해 private
 	~GameHandler();
+public:
+
+	static GameHandler* GetInstance();			// GameHandler 객체 얻기
+	void DestroyInst();							// GameHandler 객체 제거
 
 	POINT GetMousePos() const;
 	void SetMousePos(int x, int y);
 
-	void DrawFrame(HDC hdc);
+	void DrawGame(HDC hdc);						// 게임의 전체적인 내용을 그림
 
-	void DrawLine(HDC hdc, int x, int y, int x2, int y2);
+	void DrawLine(HDC hdc, int x, int y, int x2, int y2);				// MoveToEx와 LineTo 를 대체
 
-	void SetDCColor(HDC hdc, COLORREF B_Color, COLORREF P_Color);
-	void ClearDCColor(HDC hdc);
+	void SetDCColor(HDC hdc, COLORREF B_Color, COLORREF P_Color);		// SetDCPen과 SetDCBrush를 한번에 함
+	void ClearDCColor(HDC hdc);											// DC의 색을 되돌림 ( 흰색 Brush, 검정 Pen )
 
-	void OnMouseClicked(int x, int y);
+	void OnMouseClicked(int x, int y);									// WM_LBUTTONDOWN에서 호출
 
 
 	BOOL IsDragging() const;
-	void OnMouseMoved();
-	void OnMouseReleased(int x, int y);
+	void OnMouseMoved();												// WM_MOSUEMOVE에서 호출
+	void OnMouseReleased(int x, int y);									// WM_LBUTTONUP에서 호출
 
-	
+	void DeleteMonster(MonsterBase *Monster);							// MonsterTr이 끝날때 자신을 참조하는 객체의 동작이 끝날때 까지 기다린후, List에서 자신 제거
+	void DeleteProjectile(ProjectileBase* Projectile);
+
+	void AddProjectile(shared_ptr<ProjectileBase> Proj);				// 다이스가 생성한 Projectile을 리스트에 등록
+	shared_ptr<MonsterBase> GetFrontMonster() const;
 };
