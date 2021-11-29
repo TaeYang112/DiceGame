@@ -18,7 +18,9 @@ protected:
 	int Power;
 public:
 	ProjectileBase(POINT Location, int newPower);
+	~ProjectileBase() { std::cout << "Á¦°Å" << std::endl; }
 	BOOL MoveToTarget(MonsterBase* Target);
 	virtual void DrawObject(HDC hdc);
 	int GetPower() const;
+	void Disappear();
 };

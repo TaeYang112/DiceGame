@@ -64,7 +64,8 @@ public:
 
 	void DeleteMonster(MonsterBase *Monster);							// MonsterTr이 끝날때 자신을 참조하는 객체의 동작이 끝날때 까지 기다린후, List에서 자신 제거
 	void DeleteProjectile(ProjectileBase* Projectile);
-
+	//void DeleteDice(DiceBase* Dice);
+	
 	void AddProjectile(shared_ptr<ProjectileBase> Proj);				// 다이스가 생성한 Projectile을 리스트에 등록
 	shared_ptr<MonsterBase> GetFrontMonster() const;
 };

@@ -4,7 +4,7 @@
 #include "MonsterBase.h"
 #include <math.h>
 
-#define SIZE 11
+#define SIZE 10
 ProjectileBase::ProjectileBase(POINT Location, int newPower)
 {
 	Speed = 1;
@@ -65,4 +65,24 @@ void ProjectileBase::DrawObject(HDC hdc)
 int ProjectileBase::GetPower() const
 {
 	return Power;
+}
+
+
+void ProjectileBase::Disappear()		// Projectile이 사라지기전 천천히 흐려짐
+{
+	
+	int r_offs = (150 - GetRValue(Color)) / 5;
+	
+	int g_offs = (150 - GetGValue(Color)) / 5;
+	
+	int b_offs = (150 - GetBValue(Color)) / 5;
+
+	for (int i = 0; i < 5; i++)
+	{
+		int r = GetRValue(Color) + r_offs;
+		int g = GetGValue(Color) + g_offs;
+		int b = GetBValue(Color) + b_offs;
+		Color = RGB(r, g, b);
+		Sleep(50);
+	}
 }

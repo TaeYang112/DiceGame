@@ -3,6 +3,7 @@
 #include "ObjectBase.h"
 #include "ProjectileBase.h"
 #include <memory>
+#include <vector>
 
 #define DICE_BOLD 4
 #define EYE_BOLD 10
@@ -20,7 +21,8 @@ private:
 	COLORREF Color;		// 테두리 색
 	BOOL IsSelected;
 	int DiceType;		// 다이스 종류
-	HANDLE TRHandle;		// 자신에 대한 스레드 핸들
+	BOOL bReadyToDel;
+	int AttackCount;	// 공격횟수.  Projectile 소환위치에 관여
 
 public:
 	DiceBase(int slot, int eye = 1);
@@ -28,10 +30,10 @@ public:
 	~DiceBase();
 
 	BOOL operator==(const DiceBase& Dice2);
-
-	void SetTRHandle(HANDLE TRHandle);
+	BOOL IsReadyToDel() { return bReadyToDel; };
 	void StopTr();
 	void DrawObject(HDC hdc);
+	vector<RECT> GetEyeLoc(int eye);
 	void SetSlot(int slot);
 	int GetSlot() const;
 

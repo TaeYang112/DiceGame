@@ -18,6 +18,7 @@ private:
 
 public:
 	MonsterBase(int HP);
+
 	void DrawObject(HDC hdc);
 	BOOL MoveNextPoint();
 	STATE GetState() const;

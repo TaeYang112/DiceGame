@@ -44,7 +44,6 @@ GameHandler::GameHandler() : Purchase({ 305,450 }, 100, 100)
             
             v_Dice[r] = make_shared<DiceBase>(r, 1);
             HANDLE hnd = CreateThread(NULL, 0, DiceTr, &v_Dice[r], 0, NULL);
-            v_Dice[r]->SetTRHandle(hnd);
             //v_Dice[r]->ReDraw(hWnd);
             DiceCount++;
                 
@@ -64,6 +63,7 @@ GameHandler::GameHandler() : Purchase({ 305,450 }, 100, 100)
     Proj_SemaHnd = CreateSemaphore(NULL, 1, 1, NULL);
     Monster_SemaHnd = CreateSemaphore(NULL, 1, 1, NULL);
     //디버그
+
 
 }
 
@@ -391,6 +391,20 @@ void GameHandler::DeleteProjectile(ProjectileBase* Projectile)
 
 }
 
+/*
+void GameHandler::DeleteDice(DiceBase *Dice)
+{
+    for (auto it = v_Dice.begin(); it != v_Dice.end(); it++)
+    {
+        if (it->get() == Dice)
+        {
+            while((*it).use_count() > 1)                        // v_Dice를 제외한 나머지 쓰레드에서 종료될때까지 기다림
+            break;
+        }
+    }
+
+}*/
+
 void GameHandler::AddProjectile(shared_ptr<ProjectileBase> Proj)
 {
     WaitForSingleObject(Proj_SemaHnd, INFINITE);
@@ -444,10 +458,12 @@ DWORD WINAPI ProjectileTr(LPVOID Param)
 {
     shared_ptr<ProjectileBase> Projectile = ((pair<shared_ptr<ProjectileBase>, shared_ptr<MonsterBase>>*)Param)->first;
     shared_ptr<MonsterBase> Target = ((pair<shared_ptr<ProjectileBase>, shared_ptr<MonsterBase>>*)Param)->second;
-
+    
+    BOOL result = FALSE;;
     while (Target->GetState() == STATE::ALIVE) 
     {
-        BOOL result = Projectile->MoveToTarget(Target.get()); // 이동 후  타겟과 겹치면 TRUE 반환
+
+        result = Projectile->MoveToTarget(Target.get()); // 이동 후  타겟과 겹치면 TRUE 반환
         if (result)
         {
             Target->TakeDamage(Projectile->GetPower());
@@ -456,6 +472,9 @@ DWORD WINAPI ProjectileTr(LPVOID Param)
         else
         Sleep(17);
     }
+    Target = NULL;
+    if(result == FALSE) Projectile->Disappear();
+    
     GameHandler::GetInstance()->DeleteProjectile(Projectile.get());
     return 0;
 }
@@ -465,9 +484,10 @@ DWORD WINAPI DiceTr(LPVOID Param)
     shared_ptr<DiceBase> Dice = *(shared_ptr<DiceBase>*)Param;
     float AttackSpeed = Dice->GetSpeed();
     
-    while (TRUE)
+    while (!Dice->IsReadyToDel())                                               // 스레드 종료를 위한 플래그 변수
     {
         shared_ptr<MonsterBase> Target;
+        
         Target = GameHandler::GetInstance()->GetFrontMonster();
         if (Target != NULL)
         {
