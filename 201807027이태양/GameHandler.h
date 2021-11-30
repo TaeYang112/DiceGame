@@ -37,9 +37,11 @@ private:
 	HANDLE Proj_SemaHnd;						// Projectile 리스트에 접근을 관리하는 세마포 핸들
 	HANDLE Monster_SemaHnd;						// Monster 접근 관리 세마포 핸들
 	HANDLE Money_SemaHnd;
+	HANDLE HP_SemaHnd;
 
 	int Price;
 	int Money;
+	int HP;
 	static GameHandler* Instance;				// GameHandler 싱글톤 객체를 static변수로 보관
 private:
 	GameHandler();								// 싱글톤 패턴을 위해 private
@@ -64,6 +66,7 @@ public:
 
 	BOOL IsDragging() const;
 	void AddMoney(int newMoney);
+	void AddHP(int newHP);
 	void OnMouseMoved();												// WM_MOSUEMOVE에서 호출
 	void OnMouseReleased(int x, int y);									// WM_LBUTTONUP에서 호출
 

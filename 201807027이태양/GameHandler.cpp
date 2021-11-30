@@ -29,6 +29,7 @@ GameHandler::GameHandler() : Purchase({ 305,450 }, 100, 100)
     DiceCount = 0;
     Price = 50;
     Money = 50;
+    HP = 3;
     //g_hWnd = hWnd;
 
     v_Dice.assign(15, nullptr);
@@ -75,6 +76,7 @@ GameHandler::GameHandler() : Purchase({ 305,450 }, 100, 100)
     Proj_SemaHnd = CreateSemaphore(NULL, 1, 1, NULL);
     Monster_SemaHnd = CreateSemaphore(NULL, 1, 1, NULL);
     Money_SemaHnd = CreateSemaphore(NULL, 1, 1, NULL);
+    HP_SemaHnd = CreateSemaphore(NULL, 1, 1, NULL);
     //디버그
 
     CreateThread(NULL, 0, PlayTr, NULL, 0, NULL);
@@ -85,6 +87,7 @@ GameHandler::~GameHandler()
     CloseHandle(Proj_SemaHnd);
     CloseHandle(Monster_SemaHnd);
     CloseHandle(Money_SemaHnd);
+    CloseHandle(HP_SemaHnd);
 }
 
 
@@ -138,7 +141,8 @@ void GameHandler::DrawGame(HDC hdc)
     // 게임 상단바 RoundRect의 밑부분을 흰 사각형으로 가림
     SetDCColor(hdc, RGB(255, 255, 255), NULL);
     Rectangle(hdc, 21, 56, 689, 100);     
-    
+
+
     // 주사위 컨테이너 그림자
     SetDCColor(hdc, RGB(240, 240, 240), NULL);
     RoundRect(hdc, 130, 170, 580, 425, 30, 30);
@@ -170,7 +174,20 @@ void GameHandler::DrawGame(HDC hdc)
     SelectObject(hdc, GetStockObject(DC_BRUSH));
 
 
-
+    // 체력
+    HFONT HFont = CreateFont(35, 0, 0, 0, 0, 0, 0, 0, HANGEUL_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("맑은 고딕"));
+    HFONT oldFont = (HFONT)SelectObject(hdc, HFont);
+    WCHAR HPText[5] = {};
+    for (int i = 0; i < 3; i++)
+    {
+        if (i <= HP - 1)
+            HPText[i] = L'♥';
+        else
+            HPText[i] = '♡';
+    }
+    RECT HRect = { 625,100,655, 150 };
+    DrawText(hdc, HPText, -1, &HRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+    SelectObject(hdc, oldFont);
 
 
     
@@ -207,11 +224,11 @@ void GameHandler::DrawGame(HDC hdc)
 
     // 가격 표시
     HFONT PFont = CreateFont(35, 0, 0, 0, 0, 0, 0, 0, HANGEUL_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("맑은 고딕"));
-    HFONT oldFont = (HFONT)SelectObject(hdc, PFont);
+    oldFont = (HFONT)SelectObject(hdc, PFont);
     WCHAR PriceText[5] = {};
     wsprintf(PriceText, TEXT("%d"), Price);
-    RECT rect = { 320,495,390, 525 };
-    DrawText(hdc, PriceText, -1, &rect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+    RECT PRect = { 320,495,390, 525 };
+    DrawText(hdc, PriceText, -1, &PRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
     SelectObject(hdc, oldFont);
 
 
@@ -274,7 +291,8 @@ void GameHandler::SetDCColor(HDC hdc, COLORREF B_Color, COLORREF P_Color)
 
     SetDCBrushColor(hdc, B_Color);
 
-    if (P_Color == NULL) SetDCPenColor(hdc, B_Color);    else SetDCPenColor(hdc, P_Color);
+    if (P_Color == NULL) SetDCPenColor(hdc, B_Color);    
+    else SetDCPenColor(hdc, P_Color);
 }
 
 void GameHandler::ClearDCColor(HDC hdc)
@@ -373,14 +391,23 @@ void GameHandler::OnMouseReleased(int x, int y)
 BOOL GameHandler::IsDragging() const
 {
     return bDragging;
+   
 }
 
 void GameHandler::AddMoney(int newMoney)
 {
     WaitForSingleObject(Money_SemaHnd, INFINITE);
     Money += newMoney; 
-    cout << Money << endl;
+    cout << "[MONEY]\t"<<Money << endl;
     ReleaseSemaphore(Money_SemaHnd, 1, NULL);
+}
+
+void GameHandler::AddHP(int newHP)
+{
+    WaitForSingleObject(HP_SemaHnd, INFINITE);
+    HP += newHP;
+    cout << "[HP]\t"<< HP << endl;
+    ReleaseSemaphore(HP_SemaHnd, 1, NULL);
 }
 
 
@@ -542,13 +569,12 @@ DWORD WINAPI PlayTr(LPVOID Param)
     int Time = 0;
     while (1)
     {
-        cout << clock->GetTime(TIME::MINUTE) << "분  " << clock->GetTime(TIME::SECOND) << "초" << endl;
+        cout <<"[시간]\t"<< clock->GetTime(TIME::MINUTE) << "분  " << clock->GetTime(TIME::SECOND) << "초" << endl;
         Time = clock->GetTime(TIME::MINUTE) * 60 + clock->GetTime(TIME::SECOND);
         
         GHnd->SpawnMonster(MONSTER::ORIGINAL, 30 + 10 * (Time / 8));
 
         int SleepTime = max(700, 2000 - Time*10);
-        cout << SleepTime << endl;
         Sleep(SleepTime);
     }
 }
