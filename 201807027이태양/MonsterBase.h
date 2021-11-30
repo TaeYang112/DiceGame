@@ -3,9 +3,12 @@
 #include "ObjectBase.h"
 #include <iostream>
 enum class STATE {
-	ALIVE = 0,	// 살아있음
+	ALIVE,		// 살아있음
 	ARRIVAL,	// 도착
 	DEAD		// 죽음
+};
+enum class MONSTER {
+	ORIGINAL,
 };
 class MonsterBase : public ObjectBase
 {

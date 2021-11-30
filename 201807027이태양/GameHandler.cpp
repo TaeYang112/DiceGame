@@ -1,16 +1,19 @@
 #include "GameHandler.h"
-#include "resource.h"
-
-#include "MonsterBase.h"
-#include "ButtonObject.h"
-#include "ProjectileBase.h"
 #include <iostream>
 #include <utility>
 #include <ctime>
 #include <cstdlib>
 
+#include "resource.h"
+#include "MonsterBase.h"
+#include "ButtonObject.h"
+#include "ProjectileBase.h"
+#include "Clock.h"
+
+
 DWORD WINAPI MonsterTr(LPVOID Param);
 DWORD WINAPI DiceTr(LPVOID Param);
+DWORD WINAPI PlayTr(LPVOID Param);
 GameHandler* GameHandler::Instance = nullptr;
 //HWND g_hWnd;
 
@@ -47,8 +50,7 @@ GameHandler::GameHandler() : Purchase({ 305,450 }, 100, 100)
             //v_Dice[r]->ReDraw(hWnd);
             DiceCount++;
                 
-            l_Monster.push_back(make_shared<MonsterBase>(90));
-            CreateThread(NULL, 0, MonsterTr, &l_Monster.back(), 0, NULL);
+            
         });
     Purchase.SetDrawAtion([this](HDC hdc)
         {
@@ -59,12 +61,12 @@ GameHandler::GameHandler() : Purchase({ 305,450 }, 100, 100)
 
 
     //IDRHandle =  CreateThread(NULL, 0, IDRTimer, NULL, 0, NULL);
-
+    
     Proj_SemaHnd = CreateSemaphore(NULL, 1, 1, NULL);
     Monster_SemaHnd = CreateSemaphore(NULL, 1, 1, NULL);
     //디버그
 
-
+    CreateThread(NULL, 0, PlayTr, NULL, 0, NULL);
 }
 
 GameHandler::~GameHandler()
@@ -391,25 +393,20 @@ void GameHandler::DeleteProjectile(ProjectileBase* Projectile)
 
 }
 
-/*
-void GameHandler::DeleteDice(DiceBase *Dice)
-{
-    for (auto it = v_Dice.begin(); it != v_Dice.end(); it++)
-    {
-        if (it->get() == Dice)
-        {
-            while((*it).use_count() > 1)                        // v_Dice를 제외한 나머지 쓰레드에서 종료될때까지 기다림
-            break;
-        }
-    }
-
-}*/
 
 void GameHandler::AddProjectile(shared_ptr<ProjectileBase> Proj)
 {
     WaitForSingleObject(Proj_SemaHnd, INFINITE);
     l_Projectile.push_back(Proj);
     ReleaseSemaphore(Proj_SemaHnd, 1, NULL);   
+}
+
+void GameHandler::SpawnMonster(MONSTER Type, int HP)
+{
+    WaitForSingleObject(Monster_SemaHnd, INFINITE);
+    l_Monster.push_back(make_shared<MonsterBase>(90));
+    CreateThread(NULL, 0, MonsterTr, &l_Monster.back(), 0, NULL);
+    ReleaseSemaphore(Monster_SemaHnd, 1, NULL);
 }
 
 shared_ptr<MonsterBase> GameHandler::GetFrontMonster() const
@@ -504,3 +501,13 @@ DWORD WINAPI DiceTr(LPVOID Param)
 
     return 0;
 }
+
+DWORD WINAPI PlayTr(LPVOID Param)
+{
+    while (1)
+    {
+        GameHandler::GetInstance()->SpawnMonster(MONSTER::ORIGINAL, 200);
+        Sleep(rand() % 1000 + 1000);
+    }
+}
+
