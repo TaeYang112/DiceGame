@@ -24,11 +24,15 @@ DWORD WINAPI Clock::Timer(LPVOID Param)
 void Clock::AddTime()
 {
     WaitForSingleObject(TimeSema, INFINITE);
-    if (++sec >= 60)
+    sec++;
+    if (sec >= 60)
     {
-        if (++min >= 60)
+        sec = 0;
+        min++;
+        if (min >= 60)
         {
-            ++hour;
+            min = 0;
+            hour++;
         }
     }
     ReleaseSemaphore(TimeSema, 1, NULL);

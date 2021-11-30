@@ -36,7 +36,6 @@ DiceBase::DiceBase(DiceBase &Dice)
 
 DiceBase::~DiceBase()
 {
-	cout << "´ÙÀÌ½º Á×¾î¹ö·È¾²" << endl;
 }
 
 BOOL DiceBase::operator==(const DiceBase &Dice2)

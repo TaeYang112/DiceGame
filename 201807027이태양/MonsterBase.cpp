@@ -36,7 +36,7 @@ void MonsterBase::DrawObject(HDC hdc)
 	RoundRect(hdc, x+3 , y +3, x + 61, y + 61, 20, 20);
 
 	// 체력표시
-	WCHAR HPText[50] = {};
+	WCHAR HPText[5] = {};
 	wsprintf(HPText, TEXT("%d"), HP);
 	RECT rect = { x,y,x + 64, y + 64 };
 	DrawText(hdc, HPText, -1, &rect,   DT_SINGLELINE|DT_CENTER | DT_VCENTER);

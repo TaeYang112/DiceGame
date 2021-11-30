@@ -3,6 +3,7 @@
 #include <utility>
 #include <ctime>
 #include <cstdlib>
+#include <algorithm>
 
 #include "resource.h"
 #include "MonsterBase.h"
@@ -26,6 +27,8 @@ GameHandler::GameHandler() : Purchase({ 305,450 }, 100, 100)
     oldBrush = nullptr;
     DraggingDice = nullptr;
     DiceCount = 0;
+    Price = 50;
+    Money = 50;
     //g_hWnd = hWnd;
 
     v_Dice.assign(15, nullptr);
@@ -36,6 +39,13 @@ GameHandler::GameHandler() : Purchase({ 305,450 }, 100, 100)
     // 구매버튼
     Purchase.SetClickAction([this]() 
         {
+            if (Money < Price) return;
+            else
+            {
+                AddMoney(-Price);         // 돈차감
+                Price += 50;
+            }
+                
             if (DiceCount >= 15) return; // 주사위 자리가 없다면 리턴
 
             int r;
@@ -64,6 +74,7 @@ GameHandler::GameHandler() : Purchase({ 305,450 }, 100, 100)
     
     Proj_SemaHnd = CreateSemaphore(NULL, 1, 1, NULL);
     Monster_SemaHnd = CreateSemaphore(NULL, 1, 1, NULL);
+    Money_SemaHnd = CreateSemaphore(NULL, 1, 1, NULL);
     //디버그
 
     CreateThread(NULL, 0, PlayTr, NULL, 0, NULL);
@@ -71,8 +82,9 @@ GameHandler::GameHandler() : Purchase({ 305,450 }, 100, 100)
 
 GameHandler::~GameHandler()
 {
-    if( Proj_SemaHnd != NULL) CloseHandle(Proj_SemaHnd);
-    
+    CloseHandle(Proj_SemaHnd);
+    CloseHandle(Monster_SemaHnd);
+    CloseHandle(Money_SemaHnd);
 }
 
 
@@ -192,6 +204,15 @@ void GameHandler::DrawGame(HDC hdc)
     Ellipse(hdc, 360, 470, 365, 475);
     Ellipse(hdc, 345, 485, 350, 490);
     Ellipse(hdc, 360, 485, 365, 490);
+
+    // 가격 표시
+    HFONT PFont = CreateFont(35, 0, 0, 0, 0, 0, 0, 0, HANGEUL_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("맑은 고딕"));
+    HFONT oldFont = (HFONT)SelectObject(hdc, PFont);
+    WCHAR PriceText[5] = {};
+    wsprintf(PriceText, TEXT("%d"), Price);
+    RECT rect = { 320,495,390, 525 };
+    DrawText(hdc, PriceText, -1, &rect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+    SelectObject(hdc, oldFont);
 
 
     // 주사위 강화 컨테이너
@@ -354,6 +375,14 @@ BOOL GameHandler::IsDragging() const
     return bDragging;
 }
 
+void GameHandler::AddMoney(int newMoney)
+{
+    WaitForSingleObject(Money_SemaHnd, INFINITE);
+    Money += newMoney; 
+    cout << Money << endl;
+    ReleaseSemaphore(Money_SemaHnd, 1, NULL);
+}
+
 
 // MonsterTr 종료전 Monster객체를 소멸시키고 리스트에서 제거하기 위한 함수
 void GameHandler::DeleteMonster(MonsterBase *Monster)            
@@ -404,7 +433,7 @@ void GameHandler::AddProjectile(shared_ptr<ProjectileBase> Proj)
 void GameHandler::SpawnMonster(MONSTER Type, int HP)
 {
     WaitForSingleObject(Monster_SemaHnd, INFINITE);
-    l_Monster.push_back(make_shared<MonsterBase>(90));
+    l_Monster.push_back(make_shared<MonsterBase>(HP));
     CreateThread(NULL, 0, MonsterTr, &l_Monster.back(), 0, NULL);
     ReleaseSemaphore(Monster_SemaHnd, 1, NULL);
 }
@@ -445,6 +474,7 @@ DWORD WINAPI MonsterTr(LPVOID Param)
        Sleep(17);
     }   
     GameHandler::GetInstance()->DeleteMonster(Monster.get());
+    GameHandler::GetInstance()->AddMoney(100);
     return 0;
 }
 
@@ -504,10 +534,22 @@ DWORD WINAPI DiceTr(LPVOID Param)
 
 DWORD WINAPI PlayTr(LPVOID Param)
 {
+    GameHandler* GHnd = GameHandler::GetInstance();
+    Clock* clock = Clock::GetInstance();
+    clock->ClockStart();
+
+    int HPRatio = 0;
+    int Time = 0;
     while (1)
     {
-        GameHandler::GetInstance()->SpawnMonster(MONSTER::ORIGINAL, 200);
-        Sleep(rand() % 1000 + 1000);
+        cout << clock->GetTime(TIME::MINUTE) << "분  " << clock->GetTime(TIME::SECOND) << "초" << endl;
+        Time = clock->GetTime(TIME::MINUTE) * 60 + clock->GetTime(TIME::SECOND);
+        
+        GHnd->SpawnMonster(MONSTER::ORIGINAL, 30 + 10 * (Time / 8));
+
+        int SleepTime = max(700, 2000 - Time*10);
+        cout << SleepTime << endl;
+        Sleep(SleepTime);
     }
 }
 
