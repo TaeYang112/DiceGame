@@ -7,22 +7,37 @@
 
 #define DICE_BOLD 4
 #define EYE_BOLD 10
+enum class DICETYPE
+{
+	ORIGINAL,
+	PURPLE
+};
+
+enum class ATKTYPE
+{
+	FRONT,
+	BACK,
+	RANDOM
+};
 
 using namespace std;
 class ProjectileBase;
 class DiceBase : ObjectBase
 {
 
-private:
+public:
 	int Slot;			// 슬롯
-	int Power;			// 데미지
-	float AttackSpeed;	// 공격속도
 	int DiceEye;		// 주사위 눈 ( 1 ~ 6 )
-	COLORREF Color;		// 테두리 색
 	BOOL IsSelected;
-	int DiceType;		// 다이스 종류
 	BOOL bReadyToDel;
 	int AttackCount;	// 공격횟수.  Projectile 소환위치에 관여
+protected:
+	
+	int Power;			// 데미지
+	float AttackSpeed;	// 공격속도
+	ATKTYPE AttackType;
+	DICETYPE DiceType;		// 다이스 종류
+	COLORREF Color;		// 테두리 색
 
 public:
 	DiceBase(int slot, int eye = 1);
@@ -32,7 +47,7 @@ public:
 	BOOL operator==(const DiceBase& Dice2);
 	BOOL IsReadyToDel() { return bReadyToDel; };
 	void StopTr();
-	void DrawObject(HDC hdc);
+	virtual void DrawObject(HDC hdc);
 	vector<RECT> GetEyeLoc(int eye);
 	void SetSlot(int slot);
 	int GetSlot() const;
@@ -40,6 +55,8 @@ public:
 	float GetSpeed() const;
 
 	shared_ptr<ProjectileBase> SpawnProj();
+
+	ATKTYPE GetAttackType() const;
 	
 	void AddEye(int eye);
 	bool IsOverlappedPoint(const POINT TargetPoint) const;

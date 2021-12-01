@@ -176,8 +176,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         
         if (DEBUG_MODE)
         {
-            RECT Eraser = {800,0,950,20 };
-           InvalidateRect(hWnd, &Eraser, FALSE);
+            //cout << "x : " << LOWORD(lParam) << "     y : " << HIWORD(lParam) << endl;
         }
         if (GHnd->IsDragging())
         {
@@ -229,6 +228,8 @@ void OnPaint(HWND hWnd)
 
 
     // 실제 그리기 코드
+
+    /*
     if (DEBUG_MODE)                             //마우스 좌표를 출력
     {
         WCHAR mouse_position[20];
@@ -236,7 +237,7 @@ void OnPaint(HWND hWnd)
         wsprintfW(mouse_position, L"x = %d   y = %d", pos.x, pos.y);
         TextOut(hdc, 800, 0, mouse_position, lstrlenW(mouse_position));
     }
-
+    */
 
     GHnd->DrawGame(hdc);
 

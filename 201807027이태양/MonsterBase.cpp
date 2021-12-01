@@ -1,6 +1,5 @@
 #include "MonsterBase.h"
 
-HFONT MonsterBase::Font = CreateFont(35, 0, 0, 0, 0, 0, 0, 0, HANGEUL_CHARSET, 0, 0, 0,VARIABLE_PITCH | FF_ROMAN, TEXT("¸¼Àº °íµñ"));
 MonsterBase::MonsterBase(int HP)
 {
 	this->HP = HP;
@@ -8,8 +7,14 @@ MonsterBase::MonsterBase(int HP)
 	MoveDir = 0;
 	Location = {23,388};	// ¸ó½ºÅÍ ½ºÆù À§Ä¡
 	Status = STATE::ALIVE;
+
+	Font = CreateFont(35, 0, 0, 0, 0, 0, 0, 0, HANGEUL_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("¸¼Àº °íµñ"));
 }
 
+MonsterBase::~MonsterBase()
+{
+	DeleteObject(Font);
+}
 
 void MonsterBase::DrawObject(HDC hdc)
 {

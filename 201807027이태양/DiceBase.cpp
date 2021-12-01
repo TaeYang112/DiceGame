@@ -9,14 +9,15 @@ DiceBase::DiceBase(int slot, int eye)
 	AttackSpeed = 1.0f;
 	Color = RGB(0, 0, 0);
 	Location = { 0,0 };
-	Power = 10;
+	Power = 15;
 	IsSelected = FALSE;
-	DiceType = 0;
+	DiceType = DICETYPE::ORIGINAL;
 	bReadyToDel = FALSE;
 	
 	DiceEye =  eye <= 6 ? eye : 6;
 	SetSlot(slot);
 	AttackCount = 0;
+	AttackType = ATKTYPE::FRONT;
 }
 
 DiceBase::DiceBase(DiceBase &Dice)
@@ -29,7 +30,7 @@ DiceBase::DiceBase(DiceBase &Dice)
 	Location = Dice.Location;
 	Power = Dice.Power;
 	IsSelected = FALSE;
-	DiceType = 0;
+	DiceType = Dice.DiceType;
 
 	SetSlot(0);
 }
@@ -215,12 +216,15 @@ shared_ptr<ProjectileBase> DiceBase::SpawnProj()
 	int index = AttackCount % DiceEye;
 	RECT LocRect = GetEyeLoc(DiceEye)[index];
 	POINT Loc = { LocRect.left, LocRect.top };
-	shared_ptr<ProjectileBase> Proj = make_shared<ProjectileBase>(Loc,Power);
+	shared_ptr<ProjectileBase> Proj = make_shared<ProjectileBase>(Loc,Power,Color);
 
 	return Proj;
 }
 
-
+ATKTYPE DiceBase::GetAttackType() const
+{
+	return AttackType;
+}
 
 
 /*

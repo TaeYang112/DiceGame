@@ -8,6 +8,7 @@
 
 using namespace std;
 
+
 class DiceBase;
 class MonsterBase;
 class ProjectileBase;
@@ -15,23 +16,31 @@ class GameHandler
 {
 
 private:
+	static GameHandler* Instance;				// GameHandler 싱글톤 객체를 static변수로 보관
+
+	int Price;
+	int Money;
+	int HP;
+
+	int DiceCount;								// 현재 다이스 개수. 슬롯에 빈공간이 있는지 체크하기 위해 사용
+	HFONT HPFont;								// HP를 표시하기 위한 폰트
+	HFONT MoneyFont;							// Price를 표시하기 위한 폰트
+	HFONT TopFont;								// 상단바를 표시하기 위한 폰트
+
 	POINT MousePos;								// 마우스 좌표
 
-	HPEN oldPen;																			
-	HBRUSH oldBrush;
-
-	vector<ButtonObject> v_Button;
+	
 	vector<shared_ptr<DiceBase>> v_Dice;
 	list<shared_ptr<MonsterBase>> l_Monster;	// 중간에서 삭제하기 위해 리스트 사용
 	list<shared_ptr<ProjectileBase>> l_Projectile;
 
+	vector<ButtonObject> v_Button;
 	ButtonObject Purchase;						// 주사위 구매버튼
 
 	unique_ptr<DiceBase> DraggingDice;			// 주사위를 드래그할때 임시로 생성되는 객체
 	DiceBase* DraggedDice;						// 드래그 되었던 객체의 주소를 임시로 저장함
 	BOOL bDragging;								// 현재 드래그중인지 상태정보를 갖는 변수. TRUE 인동안 DraggedDice != nullptr 보장해야함
 
-	int DiceCount;								// 현재 다이스 개수. 슬롯에 빈공간이 있는지 체크하기 위해 사용
 
 
 	HANDLE Proj_SemaHnd;						// Projectile 리스트에 접근을 관리하는 세마포 핸들
@@ -39,10 +48,8 @@ private:
 	HANDLE Money_SemaHnd;
 	HANDLE HP_SemaHnd;
 
-	int Price;
-	int Money;
-	int HP;
-	static GameHandler* Instance;				// GameHandler 싱글톤 객체를 static변수로 보관
+	
+	
 private:
 	GameHandler();								// 싱글톤 패턴을 위해 private
 	~GameHandler();
@@ -76,5 +83,6 @@ public:
 	
 	void AddProjectile(shared_ptr<ProjectileBase> Proj);				// 다이스가 생성한 Projectile을 리스트에 등록
 	void SpawnMonster(MONSTER Type, int HP);
-	shared_ptr<MonsterBase> GetFrontMonster() const;
+	void SpawnDice(int slot);
+	shared_ptr<MonsterBase> GetMonsterRef(ATKTYPE Type) const;
 };

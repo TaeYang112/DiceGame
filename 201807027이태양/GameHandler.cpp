@@ -5,11 +5,13 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include "resource.h"
+
 #include "MonsterBase.h"
 #include "ButtonObject.h"
 #include "ProjectileBase.h"
 #include "Clock.h"
+#include "PurpleDIce.h"
+#include "GrayDice.h"
 
 
 DWORD WINAPI MonsterTr(LPVOID Param);
@@ -23,13 +25,15 @@ GameHandler* GameHandler::Instance = nullptr;
 GameHandler::GameHandler() : Purchase({ 305,450 }, 100, 100)
 {
     MousePos = { 0,0 };
-    oldPen = nullptr;
-    oldBrush = nullptr;
     DraggingDice = nullptr;
     DiceCount = 0;
-    Price = 50;
-    Money = 50;
+    Price = 250;
+    Money = 300;
     HP = 3;
+
+    HPFont = CreateFont(25, 0, 0, 0, 0, 0, 0, 0, HANGEUL_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("맑은 고딕"));
+    MoneyFont = CreateFont(30, 0, 0, 0, 0, 0, 0, 0, HANGEUL_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("맑은 고딕"));
+    TopFont = CreateFont(40, 0, 0, 0, 0, 0, 0, 0, HANGEUL_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("맑은 고딕"));
     //g_hWnd = hWnd;
 
     v_Dice.assign(15, nullptr);
@@ -44,7 +48,7 @@ GameHandler::GameHandler() : Purchase({ 305,450 }, 100, 100)
             else
             {
                 AddMoney(-Price);         // 돈차감
-                Price += 50;
+                Price += 10;
             }
                 
             if (DiceCount >= 15) return; // 주사위 자리가 없다면 리턴
@@ -55,12 +59,7 @@ GameHandler::GameHandler() : Purchase({ 305,450 }, 100, 100)
                 r = rand() % 15;
                 if (v_Dice[r] == nullptr) break;
             }
-            
-            v_Dice[r] = make_shared<DiceBase>(r, 1);
-            HANDLE hnd = CreateThread(NULL, 0, DiceTr, &v_Dice[r], 0, NULL);
-            //v_Dice[r]->ReDraw(hWnd);
-            DiceCount++;
-                
+            SpawnDice(r);
             
         });
     Purchase.SetDrawAtion([this](HDC hdc)
@@ -84,6 +83,10 @@ GameHandler::GameHandler() : Purchase({ 305,450 }, 100, 100)
 
 GameHandler::~GameHandler()
 {
+    DeleteObject(HPFont);
+    DeleteObject(MoneyFont);
+    DeleteObject(TopFont);
+
     CloseHandle(Proj_SemaHnd);
     CloseHandle(Monster_SemaHnd);
     CloseHandle(Money_SemaHnd);
@@ -122,8 +125,9 @@ void GameHandler::DrawGame(HDC hdc)
 {
 
     // 간편한 색 변경을 위해 DC_PEN 사용
-    oldPen = (HPEN)SelectObject(hdc, GetStockObject(DC_PEN));                   
-    oldBrush = (HBRUSH)SelectObject(hdc, GetStockObject(DC_BRUSH));
+    HPEN oldPen = (HPEN)SelectObject(hdc, GetStockObject(DC_PEN));                   
+    HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, GetStockObject(DC_BRUSH));
+    HFONT oldFont = (HFONT)GetCurrentObject(hdc, OBJ_FONT);
 
     SetBkMode(hdc, TRANSPARENT);    // 출력되는 모든 글자의 배경이 투명해짐
 
@@ -142,6 +146,20 @@ void GameHandler::DrawGame(HDC hdc)
     SetDCColor(hdc, RGB(255, 255, 255), NULL);
     Rectangle(hdc, 21, 56, 689, 100);     
 
+    
+    // 시간 표시
+    SelectObject(hdc, TopFont);
+    WCHAR TimeText[8] = { L"0 : 00" };
+    int min = Clock::GetInstance()->GetTime(TIME::MINUTE);
+    int sec = Clock::GetInstance()->GetTime(TIME::SECOND);
+
+    wsprintf(TimeText, L"%d : %d%d", min, sec / 10, sec % 10);
+
+    RECT TRect = { 325,00,430, 50 };
+    SetTextColor(hdc, RGB(255, 255, 255));
+    DrawText(hdc, TimeText, -1, &TRect, DT_SINGLELINE | DT_LEFT | DT_VCENTER);
+    SetTextColor(hdc, RGB(0, 0, 0));
+    SelectObject(hdc, oldFont);
 
     // 주사위 컨테이너 그림자
     SetDCColor(hdc, RGB(240, 240, 240), NULL);
@@ -173,22 +191,27 @@ void GameHandler::DrawGame(HDC hdc)
     SelectObject(hdc, GetStockObject(DC_PEN));
     SelectObject(hdc, GetStockObject(DC_BRUSH));
 
-
+    
     // 체력
-    HFONT HFont = CreateFont(35, 0, 0, 0, 0, 0, 0, 0, HANGEUL_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("맑은 고딕"));
-    HFONT oldFont = (HFONT)SelectObject(hdc, HFont);
-    WCHAR HPText[5] = {};
+    SelectObject(hdc, HPFont);
+    WCHAR HPText[4] = {};
+    
     for (int i = 0; i < 3; i++)
     {
         if (i <= HP - 1)
             HPText[i] = L'♥';
         else
-            HPText[i] = '♡';
+            HPText[i] = L'♡';
     }
-    RECT HRect = { 625,100,655, 150 };
-    DrawText(hdc, HPText, -1, &HRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
-    SelectObject(hdc, oldFont);
+    
+    RECT HRect = { 605,62,675, 100 };
 
+    SetTextColor(hdc, RGB(255, 0, 0));
+    DrawText(hdc, HPText, -1, &HRect, DT_SINGLELINE | DT_CENTER);
+    SetTextColor(hdc, RGB(0, 0, 0));
+
+    SelectObject(hdc, oldFont);
+    
 
     
     // 주사위 슬롯
@@ -221,16 +244,21 @@ void GameHandler::DrawGame(HDC hdc)
     Ellipse(hdc, 360, 470, 365, 475);
     Ellipse(hdc, 345, 485, 350, 490);
     Ellipse(hdc, 360, 485, 365, 490);
-
+    
     // 가격 표시
-    HFONT PFont = CreateFont(35, 0, 0, 0, 0, 0, 0, 0, HANGEUL_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("맑은 고딕"));
-    oldFont = (HFONT)SelectObject(hdc, PFont);
+    SelectObject(hdc, MoneyFont);
     WCHAR PriceText[5] = {};
     wsprintf(PriceText, TEXT("%d"), Price);
     RECT PRect = { 320,495,390, 525 };
     DrawText(hdc, PriceText, -1, &PRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
-    SelectObject(hdc, oldFont);
+    
 
+    // 돈 표시
+    WCHAR MoneyText[20] = {};
+    wsprintf(MoneyText, TEXT("Money : %d"), Money);
+    RECT MRect = { 150,495,290, 525 };
+    DrawText(hdc, MoneyText, -1, &MRect, DT_SINGLELINE | DT_LEFT | DT_VCENTER);
+    SelectObject(hdc, oldFont);
 
     // 주사위 강화 컨테이너
     SetDCColor(hdc, RGB(220, 220, 220), NULL);
@@ -273,7 +301,7 @@ void GameHandler::DrawGame(HDC hdc)
     {
         DraggingDice->DrawObject(hdc);
     }
-
+    
 
     SelectObject(hdc, oldPen);
     SelectObject(hdc, oldBrush);
@@ -465,18 +493,60 @@ void GameHandler::SpawnMonster(MONSTER Type, int HP)
     ReleaseSemaphore(Monster_SemaHnd, 1, NULL);
 }
 
-shared_ptr<MonsterBase> GameHandler::GetFrontMonster() const
+void GameHandler::SpawnDice(int slot)
 {
-    WaitForSingleObject(Monster_SemaHnd, INFINITE);
-    shared_ptr<MonsterBase> s = NULL;
-   /* for (auto it = l_Monster.begin(); it != l_Monster.end(); it++)
+    shared_ptr<DiceBase> newDice = NULL;
+    switch (rand() % 3 + 1)
     {
-        if ((*it)->GetState() == STATE::ALIVE)
+    case 0:
+        newDice = make_shared<DiceBase>(slot, 1);
+        break;
+    case 1:
+        newDice = make_shared<PurpleDIce>(slot, 1);
+        break;
+    case 2:
+        newDice = make_shared<GrayDice>(slot, 1);
+        break;
+    default:
+        newDice = make_shared<DiceBase>(slot, 1);
+        break;
+    }
+    v_Dice[slot] = newDice;
+    HANDLE hnd = CreateThread(NULL, 0, DiceTr, &v_Dice[slot], 0, NULL);
+    DiceCount++;
+}
+
+shared_ptr<MonsterBase> GameHandler::GetMonsterRef(ATKTYPE Type) const
+{
+
+    shared_ptr<MonsterBase> s = NULL;
+    WaitForSingleObject(Monster_SemaHnd, INFINITE);
+    if (!l_Monster.empty())
+    {
+        switch (Type)
         {
-            s = *it;
+        case ATKTYPE::FRONT:
+            s = l_Monster.front();
+            break;
+        case ATKTYPE::BACK:
+            s = l_Monster.back();
+            break;
+        case ATKTYPE::RANDOM:
+        {
+            int Target = rand() % l_Monster.size();
+            int index = 0;
+            for (auto it = l_Monster.begin(); it != l_Monster.end(); it++)
+            {
+                if (Target == index++) s = *it;
+            }
         }
-    }*/
-    if (!l_Monster.empty()) s = l_Monster.front();
+            break;
+        default:
+            break;
+        
+        }
+    }
+
     ReleaseSemaphore(Monster_SemaHnd, 1, NULL);
     return s;
 }
@@ -488,21 +558,26 @@ DWORD WINAPI MonsterTr(LPVOID Param)
 {
    shared_ptr<MonsterBase> Monster = *(shared_ptr<MonsterBase>*)Param;
 
+   GameHandler* GHnd = GameHandler::GetInstance();
+   BOOL bArrival = FALSE;
    while (Monster->GetState() == STATE::ALIVE)
-    {
+   {
         BOOL bMoveEnd = Monster->MoveNextPoint();   // 몬스터 이동. 만약 끝 지점에 도착하면 TRUE 반환
         
         if (bMoveEnd)
         {
             Monster->SetState(STATE::ARRIVAL);
+            bArrival = TRUE;
+            GHnd->AddHP(-1);
             break;
         }
 
        Sleep(17);
-    }   
-    GameHandler::GetInstance()->DeleteMonster(Monster.get());
-    GameHandler::GetInstance()->AddMoney(100);
-    return 0;
+   }   
+   if (bArrival == FALSE) GHnd->AddMoney(50);
+   GHnd->DeleteMonster(Monster.get());
+   
+   return 0;
 }
 
 
@@ -537,12 +612,12 @@ DWORD WINAPI DiceTr(LPVOID Param)
 {
     shared_ptr<DiceBase> Dice = *(shared_ptr<DiceBase>*)Param;
     float AttackSpeed = Dice->GetSpeed();
-    
+    ATKTYPE AttackType = Dice->GetAttackType();
     while (!Dice->IsReadyToDel())                                               // 스레드 종료를 위한 플래그 변수
     {
         shared_ptr<MonsterBase> Target;
         
-        Target = GameHandler::GetInstance()->GetFrontMonster();
+        Target = GameHandler::GetInstance()->GetMonsterRef(AttackType);
         if (Target != NULL)
         {
             shared_ptr<ProjectileBase> Proj = Dice->SpawnProj();
@@ -569,12 +644,11 @@ DWORD WINAPI PlayTr(LPVOID Param)
     int Time = 0;
     while (1)
     {
-        cout <<"[시간]\t"<< clock->GetTime(TIME::MINUTE) << "분  " << clock->GetTime(TIME::SECOND) << "초" << endl;
         Time = clock->GetTime(TIME::MINUTE) * 60 + clock->GetTime(TIME::SECOND);
         
         GHnd->SpawnMonster(MONSTER::ORIGINAL, 30 + 10 * (Time / 8));
 
-        int SleepTime = max(700, 2000 - Time*10);
+        int SleepTime = max(700, 2000 - Time*5);
         Sleep(SleepTime);
     }
 }

@@ -16,12 +16,12 @@ private:
 	int HP;
 	int Speed;
 	int MoveDir;
-	static HFONT Font;
+	HFONT Font;
 	STATE Status;				
 
 public:
 	MonsterBase(int HP);
-
+	~MonsterBase();
 	void DrawObject(HDC hdc);
 	BOOL MoveNextPoint();
 	STATE GetState() const;

@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="소스 파일\Dice">
+      <UniqueIdentifier>{f757a329-bc75-4b36-b8c5-f76d41f7614d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Dice">
+      <UniqueIdentifier>{42c8d632-5d75-42e3-83a6-74e9ba4a56a4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -48,6 +54,12 @@
     <ClInclude Include="Clock.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="PurpleDIce.h">
+      <Filter>헤더 파일\Dice</Filter>
+    </ClInclude>
+    <ClInclude Include="GrayDice.h">
+      <Filter>헤더 파일\Dice</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="201807027이태양.cpp">
@@ -72,6 +84,12 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Clock.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="PurpleDIce.cpp">
+      <Filter>소스 파일\Dice</Filter>
+    </ClCompile>
+    <ClCompile Include="GrayDice.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

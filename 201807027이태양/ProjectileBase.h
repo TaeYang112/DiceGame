@@ -17,7 +17,7 @@ protected:
 	COLORREF Color;
 	int Power;
 public:
-	ProjectileBase(POINT Location, int newPower);
+	ProjectileBase(POINT Location, int newPower, COLORREF Color);
 	BOOL MoveToTarget(MonsterBase* Target);
 	virtual void DrawObject(HDC hdc);
 	int GetPower() const;

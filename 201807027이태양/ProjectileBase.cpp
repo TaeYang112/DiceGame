@@ -5,10 +5,10 @@
 #include <math.h>
 
 #define SIZE 10
-ProjectileBase::ProjectileBase(POINT Location, int newPower)
+ProjectileBase::ProjectileBase(POINT Location, int newPower, COLORREF Color)
 {
 	Speed = 1;
-	Color = RGB(0, 0, 0);
+	this->Color = Color;
 	Power = newPower;
 	this->Location = Location;
 }
