@@ -34,10 +34,12 @@ public:
 protected:
 	
 	int Power;			// 데미지
-	float AttackSpeed;	// 공격속도
+	float AttackSpeed;	// 공격 속도
+	float ShotSpeed;	// 투사체 속도
 	ATKTYPE AttackType;
 	DICETYPE DiceType;		// 다이스 종류
 	COLORREF Color;		// 테두리 색
+	
 
 public:
 	DiceBase(int slot, int eye = 1);

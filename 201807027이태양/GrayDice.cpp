@@ -7,4 +7,5 @@ GrayDice::GrayDice(int slot, int eye) : DiceBase(slot,eye)
 	Power = 50;
 	DiceType = DICETYPE::PURPLE;
 	AttackType = ATKTYPE::BACK;
+	ShotSpeed = 0.5;
 }

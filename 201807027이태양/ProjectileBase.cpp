@@ -5,12 +5,13 @@
 #include <math.h>
 
 #define SIZE 10
-ProjectileBase::ProjectileBase(POINT Location, int newPower, COLORREF Color)
+ProjectileBase::ProjectileBase(POINT Location, int newPower, float newShotSpeed, COLORREF Color)
 {
-	Speed = 1;
+	Speed = newShotSpeed;
 	this->Color = Color;
 	Power = newPower;
 	this->Location = Location;
+
 }
 
 BOOL ProjectileBase::MoveToTarget(MonsterBase* Target)
@@ -25,8 +26,8 @@ BOOL ProjectileBase::MoveToTarget(MonsterBase* Target)
 	Unit_vec.x = (float)Dist_vec.x / Distance;									// 단위벡터로 변환
 	Unit_vec.y = (float)Dist_vec.y / Distance;
 
-	Location.x += (LONG)(Unit_vec.x * 10);
-	Location.y += (LONG)(Unit_vec.y * 10);
+	Location.x += (LONG)(Unit_vec.x * Speed * 10);
+	Location.y += (LONG)(Unit_vec.y * Speed * 10);
 
 
 	BOOL result = Target->IsOverlappedPoint({ Location.x + 1, Location.y + 1 });	//이동한 지점이 타겟과 겹칠경우

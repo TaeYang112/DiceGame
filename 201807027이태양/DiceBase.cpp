@@ -18,6 +18,7 @@ DiceBase::DiceBase(int slot, int eye)
 	SetSlot(slot);
 	AttackCount = 0;
 	AttackType = ATKTYPE::FRONT;
+	ShotSpeed = 1;
 }
 
 DiceBase::DiceBase(DiceBase &Dice)
@@ -216,7 +217,7 @@ shared_ptr<ProjectileBase> DiceBase::SpawnProj()
 	int index = AttackCount % DiceEye;
 	RECT LocRect = GetEyeLoc(DiceEye)[index];
 	POINT Loc = { LocRect.left, LocRect.top };
-	shared_ptr<ProjectileBase> Proj = make_shared<ProjectileBase>(Loc,Power,Color);
+	shared_ptr<ProjectileBase> Proj = make_shared<ProjectileBase>(Loc,Power,ShotSpeed,Color);
 
 	return Proj;
 }

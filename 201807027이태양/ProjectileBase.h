@@ -13,11 +13,11 @@ class MonsterBase;
 class ProjectileBase :  public ObjectBase
 {
 protected:
-	int Speed;		// 투사체 속도
+	float Speed;		// 투사체 속도
 	COLORREF Color;
 	int Power;
 public:
-	ProjectileBase(POINT Location, int newPower, COLORREF Color);
+	ProjectileBase(POINT Location, int newPower, float newShotSpeed, COLORREF Color);
 	BOOL MoveToTarget(MonsterBase* Target);
 	virtual void DrawObject(HDC hdc);
 	int GetPower() const;
