@@ -19,6 +19,8 @@ DiceBase::DiceBase(int slot, int eye)
 	AttackCount = 0;
 	AttackType = ATKTYPE::FRONT;
 	ShotSpeed = 1;
+	Effect = DEBUFF::NONE;
+	EffDuration = 0;
 }
 
 DiceBase::DiceBase(DiceBase &Dice)
@@ -218,6 +220,7 @@ shared_ptr<ProjectileBase> DiceBase::SpawnProj()
 	RECT LocRect = GetEyeLoc(DiceEye)[index];
 	POINT Loc = { LocRect.left, LocRect.top };
 	shared_ptr<ProjectileBase> Proj = make_shared<ProjectileBase>(Loc,Power,ShotSpeed,Color);
+	Proj->SetDebuff(GetDebuff());
 
 	return Proj;
 }
@@ -227,6 +230,11 @@ ATKTYPE DiceBase::GetAttackType() const
 	return AttackType;
 }
 
+Debuff DiceBase::GetDebuff()
+{
+	Debuff reDebuff = { Effect,DiceEye,EffDuration * DiceEye };
+	return reDebuff;
+}
 
 /*
 switch (DiceEye)

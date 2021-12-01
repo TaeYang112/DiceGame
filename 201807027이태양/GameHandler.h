@@ -5,6 +5,7 @@
 #include "ButtonObject.h" 
 #include "DiceBase.h"
 #include <memory>
+#include "MonsterBase.h"
 
 using namespace std;
 

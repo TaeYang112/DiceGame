@@ -12,6 +12,7 @@
 #include "Clock.h"
 #include "PurpleDIce.h"
 #include "GrayDice.h"
+#include "IceDice.h"
 
 
 DWORD WINAPI MonsterTr(LPVOID Param);
@@ -28,7 +29,7 @@ GameHandler::GameHandler() : Purchase({ 305,450 }, 100, 100)
     DraggingDice = nullptr;
     DiceCount = 0;
     Price = 250;
-    Money = 300;
+    Money = 500;
     HP = 3;
 
     HPFont = CreateFont(25, 0, 0, 0, 0, 0, 0, 0, HANGEUL_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("¸¼Àº °íµñ"));
@@ -507,6 +508,9 @@ void GameHandler::SpawnDice(int slot)
     case 2:
         newDice = make_shared<GrayDice>(slot, 1);
         break;
+    case 3:
+        newDice = make_shared<IceDice>(slot, 1);
+        break;
     default:
         newDice = make_shared<DiceBase>(slot, 1);
         break;
@@ -580,8 +584,6 @@ DWORD WINAPI MonsterTr(LPVOID Param)
    return 0;
 }
 
-
-
 // Åõ»çÃ¼ ¿òÁ÷ÀÓ
 DWORD WINAPI ProjectileTr(LPVOID Param)
 {
@@ -596,6 +598,7 @@ DWORD WINAPI ProjectileTr(LPVOID Param)
         if (result)
         {
             Target->TakeDamage(Projectile->GetPower());
+            Target->SetDebuff(Projectile->GetDebuff());
             break;
         }
         else

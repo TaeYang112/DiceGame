@@ -1,6 +1,18 @@
 #pragma once
 #include "framework.h"
 
+using namespace std;
+enum class DEBUFF
+{
+	NONE,
+	SLOW
+};
+typedef struct Debuff_
+{
+	DEBUFF Debuff;
+	int Level;
+	float Duration;
+}Debuff;
 class ObjectBase
 {
 protected:

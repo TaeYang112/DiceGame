@@ -1,13 +1,13 @@
 #include "MonsterBase.h"
-
-MonsterBase::MonsterBase(int HP)
+#include <math.h>
+MonsterBase::MonsterBase(int HP) : SlowDebuff{ 0, }
 {
 	this->HP = HP;
 	Speed = 2;
 	MoveDir = 0;
 	Location = {23,388};	// 몬스터 스폰 위치
 	Status = STATE::ALIVE;
-
+	
 	Font = CreateFont(35, 0, 0, 0, 0, 0, 0, 0, HANGEUL_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("맑은 고딕"));
 }
 
@@ -26,10 +26,19 @@ void MonsterBase::DrawObject(HDC hdc)
 	HPEN OldPen = (HPEN)SelectObject(hdc, GetStockObject(DC_PEN));
 	HBRUSH OldBrush = (HBRUSH)SelectObject(hdc, GetStockObject(DC_BRUSH));
 
+	int SlowLv = 0;
+	for (int i = 0; i < 6; i++)
+	{
+		int dur = SlowDebuff[i];
+		if (dur > 0) SlowLv = i + 1;
+	}
+	int b = min(26 + 30*SlowLv,255);
+
 	COLORREF OldPen_Color = SetDCPenColor(hdc, RGB(175,175,175));
 	COLORREF OldBrush_Color = SetDCBrushColor(hdc, RGB(175,175,175));
 	COLORREF OldFontColor = SetTextColor(hdc, RGB(255, 255,255));
 	
+
 
 
 	// 바깥 테두리
@@ -37,7 +46,7 @@ void MonsterBase::DrawObject(HDC hdc)
 
 	// 안쪽 검은 사각형
 	SetDCPenColor(hdc, RGB(26, 26, 26));
-	SetDCBrushColor(hdc, RGB(26, 26, 26));
+	SetDCBrushColor(hdc, RGB(26, 26, b));
 	RoundRect(hdc, x+3 , y +3, x + 61, y + 61, 20, 20);
 
 	// 체력표시
@@ -61,22 +70,30 @@ void MonsterBase::DrawObject(HDC hdc)
 
 BOOL MonsterBase::MoveNextPoint()
 {
+	int SlowLv = 0;
+	for (int i = 0; i < 6; i++)
+	{
+		int dur = SlowDebuff[i];
+		if (dur > 0) SlowLv = i+1;
+		SlowDebuff[i] = dur - 17 > 0 ? dur - 17 : 0;
+	}
+	float curSpeed = Speed - (Speed * 0.1 * SlowLv);
 	switch (MoveDir)
 	{
 	case 0:
-		Location.y -= Speed;
+		Location.y -= curSpeed;
 		if (Location.y <= 88)
 			MoveDir = 1;
 		break;
 
 	case 1:
-		Location.x += Speed;
+		Location.x += curSpeed;
 		if (Location.x >= 623)
 			MoveDir = 2;
 		break;
 
 	case 2:
-		Location.y += Speed;
+		Location.y += curSpeed;
 		if (Location.y >= 388)
 			MoveDir = 3;
 		break;
@@ -124,4 +141,16 @@ void MonsterBase::TakeDamage(int Power)
 		SetState(STATE::DEAD);
 	}
 	return;
+}
+
+void MonsterBase::SetDebuff(Debuff newDebuff)
+{
+	switch (newDebuff.Debuff)
+	{
+	case DEBUFF::SLOW:
+		SlowDebuff[newDebuff.Level - 1] += newDebuff.Duration;
+		break;
+	default:
+		break;
+	}
 }

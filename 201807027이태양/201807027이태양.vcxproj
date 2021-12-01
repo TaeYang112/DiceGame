@@ -146,6 +146,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="GameHandler.h" />
     <ClInclude Include="GrayDice.h" />
+    <ClInclude Include="IceDice.h" />
     <ClInclude Include="MonsterBase.h" />
     <ClInclude Include="ObjectBase.h" />
     <ClInclude Include="ProjectileBase.h" />
@@ -160,6 +161,7 @@
     <ClCompile Include="DiceBase.cpp" />
     <ClCompile Include="GameHandler.cpp" />
     <ClCompile Include="GrayDice.cpp" />
+    <ClCompile Include="IceDice.cpp" />
     <ClCompile Include="MonsterBase.cpp" />
     <ClCompile Include="ObjectBase.cpp" />
     <ClCompile Include="ProjectileBase.cpp" />

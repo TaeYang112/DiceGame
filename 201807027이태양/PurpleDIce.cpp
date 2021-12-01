@@ -8,3 +8,5 @@ PurpleDIce::PurpleDIce(int slot, int eye) : DiceBase(slot,eye)
 	DiceType = DICETYPE::PURPLE;
 	AttackType = ATKTYPE::RANDOM;
 }
+
+

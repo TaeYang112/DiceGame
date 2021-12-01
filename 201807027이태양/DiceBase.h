@@ -10,7 +10,9 @@
 enum class DICETYPE
 {
 	ORIGINAL,
-	PURPLE
+	PURPLE,
+	GRAY,
+	ICE
 };
 
 enum class ATKTYPE
@@ -39,6 +41,8 @@ protected:
 	ATKTYPE AttackType;
 	DICETYPE DiceType;		// 다이스 종류
 	COLORREF Color;		// 테두리 색
+	DEBUFF Effect;
+	float EffDuration;
 	
 
 public:
@@ -59,6 +63,8 @@ public:
 	shared_ptr<ProjectileBase> SpawnProj();
 
 	ATKTYPE GetAttackType() const;
+
+	Debuff GetDebuff();
 	
 	void AddEye(int eye);
 	bool IsOverlappedPoint(const POINT TargetPoint) const;

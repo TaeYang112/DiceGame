@@ -17,7 +17,8 @@ private:
 	int Speed;
 	int MoveDir;
 	HFONT Font;
-	STATE Status;				
+	STATE Status;
+	int SlowDebuff[6];
 
 public:
 	MonsterBase(int HP);
@@ -28,5 +29,6 @@ public:
 	void  SetState(STATE newStatus);
 	BOOL IsOverlappedPoint(const POINT TargetPoint) const;
 	void TakeDamage(int Power);
+	void SetDebuff(Debuff newDebuff);
 };
 

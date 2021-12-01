@@ -11,7 +11,7 @@ ProjectileBase::ProjectileBase(POINT Location, int newPower, float newShotSpeed,
 	this->Color = Color;
 	Power = newPower;
 	this->Location = Location;
-
+	Effect = { DEBUFF::NONE,0,0 };
 }
 
 BOOL ProjectileBase::MoveToTarget(MonsterBase* Target)
@@ -86,4 +86,15 @@ void ProjectileBase::Disappear()		// Projectile이 사라지기전 천천히 흐려짐
 		Color = RGB(r, g, b);
 		Sleep(50);
 	}
+}
+
+void ProjectileBase::SetDebuff(Debuff newDebuff)
+{
+
+	Effect = newDebuff;
+}
+
+Debuff ProjectileBase::GetDebuff()
+{
+	return Effect;
 }
