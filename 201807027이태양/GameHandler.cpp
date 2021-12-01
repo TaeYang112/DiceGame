@@ -13,7 +13,7 @@
 #include "PurpleDIce.h"
 #include "GrayDice.h"
 #include "IceDice.h"
-
+#include "SniperDice.h"
 
 DWORD WINAPI MonsterTr(LPVOID Param);
 DWORD WINAPI DiceTr(LPVOID Param);
@@ -497,7 +497,7 @@ void GameHandler::SpawnMonster(MONSTER Type, int HP)
 void GameHandler::SpawnDice(int slot)
 {
     shared_ptr<DiceBase> newDice = NULL;
-    switch (rand() % 3 + 1)
+    switch (rand() % 5)
     {
     case 0:
         newDice = make_shared<DiceBase>(slot, 1);
@@ -510,6 +510,9 @@ void GameHandler::SpawnDice(int slot)
         break;
     case 3:
         newDice = make_shared<IceDice>(slot, 1);
+        break;
+    case 4:
+        newDice = make_shared<SniperDice>(slot, 1);
         break;
     default:
         newDice = make_shared<DiceBase>(slot, 1);
@@ -631,6 +634,7 @@ DWORD WINAPI DiceTr(LPVOID Param)
 
             CreateThread(NULL, 0, ProjectileTr, &rParam, 0, NULL);
         }
+        Target = NULL;
         Sleep(DWORD(AttackSpeed * 1000));
     }
 

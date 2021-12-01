@@ -12,7 +12,8 @@ enum class DICETYPE
 	ORIGINAL,
 	PURPLE,
 	GRAY,
-	ICE
+	ICE,
+	SNIPER
 };
 
 enum class ATKTYPE

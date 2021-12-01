@@ -63,6 +63,9 @@
     <ClInclude Include="IceDice.h">
       <Filter>헤더 파일\Dice</Filter>
     </ClInclude>
+    <ClInclude Include="SniperDice.h">
+      <Filter>헤더 파일\Dice</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="201807027이태양.cpp">
@@ -96,6 +99,9 @@
       <Filter>소스 파일\Dice</Filter>
     </ClCompile>
     <ClCompile Include="IceDice.cpp">
+      <Filter>소스 파일\Dice</Filter>
+    </ClCompile>
+    <ClCompile Include="SniperDice.cpp">
       <Filter>소스 파일\Dice</Filter>
     </ClCompile>
   </ItemGroup>
