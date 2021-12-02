@@ -159,7 +159,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             switch (wmId)
             {
             case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), NULL, About);
                 break;
             case IDM_EXIT:
                 DestroyWindow(hWnd);
@@ -215,16 +215,16 @@ void OnPaint(HWND hWnd)
 {
     PAINTSTRUCT ps;
 
-    static HDC hdc, MemDC;
+    static HDC hdc, MemDC;                                                     
     static HBITMAP BackBit, oldBackBit;
     static RECT bufferRT;
-    MemDC = BeginPaint(hWnd, &ps);
+    MemDC = BeginPaint(hWnd, &ps);                                              // 더블버퍼링 == OnPaint가 불릴때마다 흰색 화면에다 새로 그리는것이 아닌 미리 다른데다가 그려놓고 옮기는것
 
-    GetClientRect(hWnd, &bufferRT);
-    hdc = CreateCompatibleDC(MemDC);
-    BackBit = CreateCompatibleBitmap(MemDC, bufferRT.right, bufferRT.bottom);
-    oldBackBit = (HBITMAP)SelectObject(hdc, BackBit);
-    PatBlt(hdc, 0, 0, bufferRT.right, bufferRT.bottom, WHITENESS);
+    GetClientRect(hWnd, &bufferRT);                                             // hWnd RECT를 가져옴
+    hdc = CreateCompatibleDC(MemDC);                                            // 화면에 출력하지 않는 DC를 가져옴
+    BackBit = CreateCompatibleBitmap(MemDC, bufferRT.right, bufferRT.bottom);   // MemDC와 호환되는 Bitmap을 만듬 == 메인 화면의 정보와 똑같은 그림판을 만듬
+    oldBackBit = (HBITMAP)SelectObject(hdc, BackBit);                           // 그림판과 hdc를 연결 == hdc로 그림을 그려도 출력되지 않고 BackBit에 그려짐
+    PatBlt(hdc, 0, 0, bufferRT.right, bufferRT.bottom, WHITENESS);              // 흰바탕 그림
 
 
     // 실제 그리기 코드
@@ -242,9 +242,9 @@ void OnPaint(HWND hWnd)
     GHnd->DrawGame(hdc);
 
     // 더블버퍼링 끝
-    GetClientRect(hWnd, &bufferRT);
-    BitBlt(MemDC, 0, 0, bufferRT.right, bufferRT.bottom, hdc, 0, 0, SRCCOPY);
-    SelectObject(hdc, oldBackBit);
+    GetClientRect(hWnd, &bufferRT);                                             // hWnd RECT를 가져옴
+    BitBlt(MemDC, 0, 0, bufferRT.right, bufferRT.bottom, hdc, 0, 0, SRCCOPY);   // hdc로 그렸던 그림들을 MemDC에다가 그림
+    SelectObject(hdc, oldBackBit);                                              // hdc가 이전 비트맵을 선택하도록 함
     DeleteObject(BackBit);
     DeleteDC(hdc);
     EndPaint(hWnd, &ps);
