@@ -30,5 +30,6 @@ public:
 	BOOL IsOverlappedPoint(const POINT TargetPoint) const;
 	void TakeDamage(int Power);
 	void SetDebuff(Debuff newDebuff);
+	int GetSleepTime();
 };
 

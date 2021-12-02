@@ -3,7 +3,7 @@
 MonsterBase::MonsterBase(int HP) : SlowDebuff{ 0, }
 {
 	this->HP = HP;
-	Speed = 2;
+	Speed = 17;
 	MoveDir = 0;
 	Location = {23,388};	// 몬스터 스폰 위치
 	Status = STATE::ALIVE;
@@ -70,30 +70,29 @@ void MonsterBase::DrawObject(HDC hdc)
 
 BOOL MonsterBase::MoveNextPoint()
 {
-	int SlowLv = 0;
+	int SleepTime = GetSleepTime();
 	for (int i = 0; i < 6; i++)
 	{
 		int dur = SlowDebuff[i];
-		if (dur > 0) SlowLv = i+1;
-		SlowDebuff[i] = dur - 17 > 0 ? dur - 17 : 0;
+		SlowDebuff[i] = dur - SleepTime > 0 ? dur - SleepTime : 0;
 	}
-	float curSpeed = Speed - (Speed * 0.1 * SlowLv);
+
 	switch (MoveDir)
 	{
 	case 0:
-		Location.y -= curSpeed;
+		Location.y -= 2;
 		if (Location.y <= 88)
 			MoveDir = 1;
 		break;
 
 	case 1:
-		Location.x += curSpeed;
+		Location.x += 2;
 		if (Location.x >= 623)
 			MoveDir = 2;
 		break;
 
 	case 2:
-		Location.y += curSpeed;
+		Location.y += 2;
 		if (Location.y >= 388)
 			MoveDir = 3;
 		break;
@@ -104,7 +103,17 @@ BOOL MonsterBase::MoveNextPoint()
 	return FALSE;
 }
 
-
+int MonsterBase::GetSleepTime() 
+{
+	int SlowLv = 0;
+	for (int i = 0; i < 6; i++)
+	{
+		int dur = SlowDebuff[i];
+		if (dur > 0) SlowLv = i + 1;
+	}
+	float curSpeed = 17 + (20 * SlowLv);
+	return curSpeed;
+}
 
 STATE MonsterBase::GetState() const
 {

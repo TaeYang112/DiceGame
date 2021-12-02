@@ -579,7 +579,7 @@ DWORD WINAPI MonsterTr(LPVOID Param)
             break;
         }
 
-       Sleep(17);
+       Sleep(Monster->GetSleepTime());
    }   
    if (bArrival == FALSE) GHnd->AddMoney(50);
    GHnd->DeleteMonster(Monster.get());
