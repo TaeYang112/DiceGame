@@ -5,5 +5,6 @@ class IceDice :
 {
 public:
     IceDice(int slot, int eye);
+    void EyeChanged();
 };
 

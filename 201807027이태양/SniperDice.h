@@ -5,5 +5,6 @@ class SniperDice :
 {
 public:
     SniperDice(int slot, int eye);
+    void EyeChanged();
 };
 

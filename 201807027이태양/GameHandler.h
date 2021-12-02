@@ -2,10 +2,9 @@
 #include <vector>
 #include <list>
 #include "framework.h"
-#include "ButtonObject.h" 
+#include "MonsterBase.h"
 #include "DiceBase.h"
 #include <memory>
-#include "MonsterBase.h"
 
 using namespace std;
 
@@ -13,6 +12,7 @@ using namespace std;
 class DiceBase;
 class MonsterBase;
 class ProjectileBase;
+class ButtonObject;
 class GameHandler
 {
 
@@ -22,6 +22,7 @@ private:
 	int Price;
 	int Money;
 	int HP;
+	int DIceUpgradeNum[6];						// 다이스별 강화정도
 
 	int DiceCount;								// 현재 다이스 개수. 슬롯에 빈공간이 있는지 체크하기 위해 사용
 	HFONT HPFont;								// HP를 표시하기 위한 폰트
@@ -35,8 +36,9 @@ private:
 	list<shared_ptr<MonsterBase>> l_Monster;	// 중간에서 삭제하기 위해 리스트 사용
 	list<shared_ptr<ProjectileBase>> l_Projectile;
 
-	vector<ButtonObject> v_Button;
-	ButtonObject Purchase;						// 주사위 구매버튼
+	vector<shared_ptr<ButtonObject>> v_Button;				// 여러 버튼들을 관리하는 벡터 / Click을 호출해줌
+	shared_ptr<ButtonObject> Purchase;						// 주사위 구매버튼
+	shared_ptr<ButtonObject> UpgradeBtn[5];					// 주사위 강화버튼
 
 	unique_ptr<DiceBase> DraggingDice;			// 주사위를 드래그할때 임시로 생성되는 객체
 	DiceBase* DraggedDice;						// 드래그 되었던 객체의 주소를 임시로 저장함
@@ -59,6 +61,8 @@ public:
 	static GameHandler* GetInstance();			// GameHandler 객체 얻기
 	void DestroyInst();							// GameHandler 객체 제거
 
+	void ButtonInit();
+
 	POINT GetMousePos() const;
 	void SetMousePos(int x, int y);
 
@@ -75,6 +79,8 @@ public:
 	BOOL IsDragging() const;
 	void AddMoney(int newMoney);
 	void AddHP(int newHP);
+	void AddUpgradeNum(DICETYPE type, int num);
+	int GetUpgradeNum(DICETYPE type);
 	void OnMouseMoved();												// WM_MOSUEMOVE에서 호출
 	void OnMouseReleased(int x, int y);									// WM_LBUTTONUP에서 호출
 

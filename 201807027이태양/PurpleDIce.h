@@ -4,5 +4,6 @@ class PurpleDIce : public DiceBase
 {
 public:
 	PurpleDIce(int slot, int eye = 1);
+	void EyeChanged();
 };
 

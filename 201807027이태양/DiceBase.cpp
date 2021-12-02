@@ -11,14 +11,14 @@ DiceBase::DiceBase(int slot, int eye)
 	Location = { 0,0 };
 	Power = 15;
 	IsSelected = FALSE;
-	DiceType = DICETYPE::ORIGINAL;
+	DiceType = DICETYPE::BLACK;
 	bReadyToDel = FALSE;
 	
 	DiceEye =  eye <= 6 ? eye : 6;
 	SetSlot(slot);
 	AttackCount = 0;
 	AttackType = ATKTYPE::FRONT;
-	ShotSpeed = 1;
+	ShotSpeed = 1.0f;
 	Effect = DEBUFF::NONE;
 	EffDuration = 0;
 }
@@ -40,11 +40,12 @@ DiceBase::DiceBase(DiceBase &Dice)
 
 DiceBase::~DiceBase()
 {
+	cout << "[´ÙÀÌ½º ¼Ò¸ê]" << endl;
 }
 
 BOOL DiceBase::operator==(const DiceBase &Dice2)
 {
-	if (this->DiceEye == Dice2.DiceEye) return TRUE;
+	if (this->DiceEye == Dice2.DiceEye && this->DiceType == Dice2.DiceType) return TRUE;
 	
 	return FALSE;
 }
@@ -192,7 +193,47 @@ int DiceBase::GetEye() const
 void DiceBase::AddEye(int eye)
 {
 	DiceEye = DiceEye + eye <= 6 ? DiceEye + eye : 6;
+	EyeChanged();
+}
 
+void DiceBase::EyeChanged()
+{
+	AttackCount = 0;
+	switch (DiceEye)
+	{
+	case 1:
+		AttackSpeed = 1.0f;
+		Power = 15;
+		ShotSpeed = 1.0f;
+		break;
+	case 2:
+		AttackSpeed = 0.9f;
+		Power = 30;
+		ShotSpeed = 1.1f;
+		break;
+	case 3:
+		AttackSpeed = 0.8f;
+		Power = 45;
+		ShotSpeed = 1.2f;
+		break;
+	case 4:
+		AttackSpeed = 0.65f;
+		Power = 60;
+		ShotSpeed = 1.3f;
+		break;
+	case 5:
+		AttackSpeed = 0.5f;
+		Power = 75;
+		ShotSpeed = 1.4f;
+		break;
+	case 6:
+		AttackSpeed = 0.3f;
+		Power = 90;
+		ShotSpeed = 1.5f;
+		break;
+	default:
+		break;
+	}
 }
 void DiceBase::SetSlot(int slot)
 {
@@ -236,44 +277,12 @@ Debuff DiceBase::GetDebuff()
 	return reDebuff;
 }
 
+void DiceBase::SetUpgradNum(int num)
+{
+	UpgradeNum = num;
+}
 
-/*
-switch (DiceEye)
-	{
-	case 1:
-		Ellipse(hdc, x + (70 - EYE_BOLD)/ 2, y + (70 - EYE_BOLD) / 2, x + (70 + EYE_BOLD) / 2, y + (70 + EYE_BOLD) / 2);
-		break;
-	case 2:
-		Ellipse(hdc, x + 20 - EYE_BOLD / 2, y + 50 - EYE_BOLD / 2, x + 20 + EYE_BOLD / 2, y + 50 + EYE_BOLD / 2);
-		Ellipse(hdc, x + 50 - EYE_BOLD / 2, y + 20 - EYE_BOLD / 2, x + 50 + EYE_BOLD / 2, y + 20 + EYE_BOLD / 2);
-		break;
-	case 3:
-		Ellipse(hdc, x + (70 - EYE_BOLD) / 2, y + (70 - EYE_BOLD) / 2, x + (70 + EYE_BOLD) / 2, y + (70 + EYE_BOLD) / 2);
-		Ellipse(hdc, x + 20 - EYE_BOLD / 2, y + 50 - EYE_BOLD / 2, x + 20 + EYE_BOLD / 2, y + 50 + EYE_BOLD / 2);
-		Ellipse(hdc, x + 50 - EYE_BOLD / 2, y + 20 - EYE_BOLD / 2, x + 50 + EYE_BOLD / 2, y + 20 + EYE_BOLD / 2);
-		break;
-	case 4:
-		Ellipse(hdc, x + 20 - EYE_BOLD / 2, y + 50 - EYE_BOLD / 2, x + 20 + EYE_BOLD / 2, y + 50 + EYE_BOLD / 2);
-		Ellipse(hdc, x + 20 - EYE_BOLD / 2, y + 20 - EYE_BOLD / 2, x + 20 + EYE_BOLD / 2, y + 20 + EYE_BOLD / 2);
-		Ellipse(hdc, x + 50 - EYE_BOLD / 2, y + 20 - EYE_BOLD / 2, x + 50 + EYE_BOLD / 2, y + 20 + EYE_BOLD / 2);
-		Ellipse(hdc, x + 50 - EYE_BOLD / 2, y + 50 - EYE_BOLD / 2, x + 50 + EYE_BOLD / 2, y + 50 + EYE_BOLD / 2);
-		break;
-	case 5:
-		Ellipse(hdc, x + (70 - EYE_BOLD) / 2, y + (70 - EYE_BOLD) / 2, x + (70 + EYE_BOLD) / 2, y + (70 + EYE_BOLD) / 2);
-		Ellipse(hdc, x + 20 - EYE_BOLD / 2, y + 50 - EYE_BOLD / 2, x + 20 + EYE_BOLD / 2, y + 50 + EYE_BOLD / 2);
-		Ellipse(hdc, x + 20 - EYE_BOLD / 2, y + 20 - EYE_BOLD / 2, x + 20 + EYE_BOLD / 2, y + 20 + EYE_BOLD / 2);
-		Ellipse(hdc, x + 50 - EYE_BOLD / 2, y + 20 - EYE_BOLD / 2, x + 50 + EYE_BOLD / 2, y + 20 + EYE_BOLD / 2);
-		Ellipse(hdc, x + 50 - EYE_BOLD / 2, y + 50 - EYE_BOLD / 2, x + 50 + EYE_BOLD / 2, y + 50 + EYE_BOLD / 2);
-		break;
-	case 6:
-		Ellipse(hdc, x + 20 - EYE_BOLD / 2, y + 35 - EYE_BOLD / 2, x + 20 + EYE_BOLD / 2, y + 35 + EYE_BOLD / 2);
-		Ellipse(hdc, x + 50 - EYE_BOLD / 2, y + 35 - EYE_BOLD / 2, x + 50 + EYE_BOLD / 2, y + 35 + EYE_BOLD / 2);
-		Ellipse(hdc, x + 20 - EYE_BOLD / 2, y + 50 - EYE_BOLD / 2, x + 20 + EYE_BOLD / 2, y + 50 + EYE_BOLD / 2);
-		Ellipse(hdc, x + 20 - EYE_BOLD / 2, y + 50 - EYE_BOLD / 2, x + 20 + EYE_BOLD / 2, y + 50 + EYE_BOLD / 2);
-		Ellipse(hdc, x + 20 - EYE_BOLD / 2, y + 20 - EYE_BOLD / 2, x + 20 + EYE_BOLD / 2, y + 20 + EYE_BOLD / 2);
-		Ellipse(hdc, x + 50 - EYE_BOLD / 2, y + 20 - EYE_BOLD / 2, x + 50 + EYE_BOLD / 2, y + 20 + EYE_BOLD / 2);
-		Ellipse(hdc, x + 50 - EYE_BOLD / 2, y + 50 - EYE_BOLD / 2, x + 50 + EYE_BOLD / 2, y + 50 + EYE_BOLD / 2);
-		break;
-	default:
-		break;
-	}*/
+DICETYPE DiceBase::GetType() const
+{
+	return DiceType;
+}

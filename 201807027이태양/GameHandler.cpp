@@ -14,6 +14,7 @@
 #include "GrayDice.h"
 #include "IceDice.h"
 #include "SniperDice.h"
+#include "BlackDice.h"
 
 DWORD WINAPI MonsterTr(LPVOID Param);
 DWORD WINAPI DiceTr(LPVOID Param);
@@ -23,7 +24,7 @@ GameHandler* GameHandler::Instance = nullptr;
 
 
 
-GameHandler::GameHandler() : Purchase({ 305,450 }, 100, 100)
+GameHandler::GameHandler() : DIceUpgradeNum{ 0,0,0,0,0,0 }
 {
     MousePos = { 0,0 };
     DraggingDice = nullptr;
@@ -42,33 +43,9 @@ GameHandler::GameHandler() : Purchase({ 305,450 }, 100, 100)
 
     srand((unsigned int)time(NULL));
 
-    // 구매버튼
-    Purchase.SetClickAction([this]() 
-        {
-            if (Money < Price) return;
-            else
-            {
-                AddMoney(-Price);         // 돈차감
-                Price += 10;
-            }
-                
-            if (DiceCount >= 15) return; // 주사위 자리가 없다면 리턴
-
-            int r;
-            while (1)
-            {
-                r = rand() % 15;
-                if (v_Dice[r] == nullptr) break;
-            }
-            SpawnDice(r);
-            
-        });
-    Purchase.SetDrawAtion([this](HDC hdc)
-        {
-            SetDCColor(hdc, RGB(180, 180, 180), RGB(170, 170, 170));
-            Ellipse(hdc, 305, 450, 405, 550);
-        });
-    v_Button.push_back(Purchase);
+    // 버튼 초기화
+    ButtonInit();
+    
 
 
     //IDRHandle =  CreateThread(NULL, 0, IDRTimer, NULL, 0, NULL);
@@ -79,7 +56,7 @@ GameHandler::GameHandler() : Purchase({ 305,450 }, 100, 100)
     HP_SemaHnd = CreateSemaphore(NULL, 1, 1, NULL);
     //디버그
 
-    CreateThread(NULL, 0, PlayTr, NULL, 0, NULL);
+    CreateThread(NULL, 0, PlayTr, NULL, 0, NULL);                    // 게임의 진행관리 쓰레드
 }
 
 GameHandler::~GameHandler()
@@ -111,6 +88,126 @@ void GameHandler::DestroyInst()
         delete Instance;
     }
 }
+
+void GameHandler::ButtonInit()
+{
+    // 구매버튼
+    Purchase = make_shared<ButtonObject>(POINT{ 305,450 }, 100, 100);
+    Purchase->SetClickAction([this]()
+        {
+            if (DiceCount >= 15) return; // 주사위 자리가 없다면 리턴
+
+            if (Money < Price) return;
+            else
+            {
+                AddMoney(-Price);         // 돈차감
+                Price += 10;
+            }
+
+
+            int r;
+            while (1)
+            {
+                r = rand() % 15;
+                if (v_Dice[r] == nullptr) break;
+            }
+            SpawnDice(r);
+
+        });
+    Purchase->SetDrawAtion([this](HDC hdc)
+        {
+            SetDCColor(hdc, RGB(180, 180, 180), RGB(170, 170, 170));
+            Ellipse(hdc, 305, 450, 405, 550);
+        });
+    v_Button.push_back(Purchase);
+  
+
+    
+    // 업그레이드 버튼
+    int x = 145;
+    int y = 592;
+   
+    for (int i = 0; i<5; i++)
+    {
+        UpgradeBtn[i] = make_shared<ButtonObject>(POINT{ x,y }, 70, 70);
+
+        UpgradeBtn[i]->SetDrawAtion([=](HDC hdc)
+            {
+                COLORREF Color = RGB(0, 0, 0);
+                switch (i)
+                {
+                
+                case (int)DICETYPE::PURPLE: Color = RGB(108, 84, 190);
+                    break;
+                case (int)DICETYPE::GRAY: Color = RGB(150, 150, 150);
+                    break;
+                case (int)DICETYPE::ICE: Color = RGB(153, 217, 234);
+                    break;
+                case (int)DICETYPE::SNIPER: Color = RGB(255, 140, 55);
+                    break;
+                case (int)DICETYPE::BLACK: Color = RGB(0, 0, 0);
+                    break;
+                }
+
+                
+                // 테두리 역할 ( 선으로 하면 크기 예상이 힘듬 )
+                SetDCColor(hdc, Color, NULL);
+                RoundRect(hdc, x, y, x + 80, y + 80, 20, 20);
+
+                // 주사위 안쪽 ( 흰색 )
+                SetDCColor(hdc, RGB(255, 255, 255), NULL);
+                RoundRect(hdc, x + DICE_BOLD, y + DICE_BOLD, x + 80 - DICE_BOLD, y + 80 - DICE_BOLD, 20, 20);
+
+
+                // 폰트 변경
+                HFONT Font = CreateFont(35, 0, 0, 0, 0, 0, 0, 0, HANGEUL_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("맑은 고딕"));
+                HFONT subFont = CreateFont(20, 0, 0, 0, 0, 0, 0, 0, HANGEUL_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("맑은 고딕"));
+                HFONT oldFont = (HFONT)SelectObject(hdc, Font);
+
+                // 가격 표시
+                WCHAR PriceText[6] = {};
+                int price = 100 + GetUpgradeNum((DICETYPE)i) * 100;
+                wsprintf(PriceText, TEXT("%d"), price);
+                RECT PRect = { x+8,y-5,x + 70, y + 70 };
+                DrawText(hdc, PriceText, -1, &PRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+
+                
+                SelectObject(hdc, subFont);
+                // 레벨 표시
+                WCHAR LVText[6] = {};
+                int LV = GetUpgradeNum((DICETYPE)i);
+                wsprintf(LVText, TEXT("LV. %d"), LV);
+                RECT LRect = { x + 8,y +20,x + 70, y + 70+20 };
+                DrawText(hdc, LVText, -1, &LRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+
+               // 오브젝트 제거
+                SelectObject(hdc, oldFont);
+                DeleteObject(Font);
+                DeleteObject(subFont);
+                
+
+            }
+        );
+
+        x += 85;
+
+        UpgradeBtn[i]->SetClickAction([=]()
+            {
+                int price = 100 + GetUpgradeNum((DICETYPE)i) * 100;
+                cout << "가격 : " << price << endl;
+                if (Money >= price)
+                {
+                    AddUpgradeNum((DICETYPE)i, 1);
+                    AddMoney(-price);
+                }
+            });
+        v_Button.push_back(UpgradeBtn[i]);
+    }
+    
+
+}
+
+
 POINT GameHandler::GetMousePos() const
 {
 	return MousePos;
@@ -230,7 +327,7 @@ void GameHandler::DrawGame(HDC hdc)
     }
 
     // 주사위 구매버튼 바깥 ( 버튼 객체 )
-    Purchase.DrawObject(hdc);
+    Purchase->DrawObject(hdc);
 
     // 주사위 구매버튼 안쪽
     SetDCColor(hdc, RGB(220, 220, 220), RGB(210, 210, 210));
@@ -265,6 +362,11 @@ void GameHandler::DrawGame(HDC hdc)
     SetDCColor(hdc, RGB(220, 220, 220), NULL);
     RoundRect(hdc, 135, 575, 575, 680, 20, 20);
 
+    // 주사위 강화 버튼
+    for (int i = 0; i < 5; i++)
+    {
+        UpgradeBtn[i]->DrawObject(hdc);
+    }
     
     // 몬스터 
     //WaitForSingleObject(Monster_SemaHnd, INFINITE);
@@ -335,9 +437,9 @@ void GameHandler::OnMouseClicked(int x, int y)                  // WM_LBUTTONDOW
     
     for (int i = 0; i < (int)v_Button.size(); i++)   
     {
-        if (v_Button[i].IsOverlappedPoint(x, y))                // 클릭한 위치가 버튼의 범위 내에 있을경우 참
+        if (v_Button[i]->IsOverlappedPoint(x, y))                // 클릭한 위치가 버튼의 범위 내에 있을경우 참
         {
-            v_Button[i].OnClickedObject();                      // 버튼에 등록한 함수를 실행
+            v_Button[i]->OnClickedObject();                      // 버튼에 등록한 함수를 실행
         }
     }
     for (int i = 0; i < 15; i++)
@@ -439,6 +541,16 @@ void GameHandler::AddHP(int newHP)
     ReleaseSemaphore(HP_SemaHnd, 1, NULL);
 }
 
+void GameHandler::AddUpgradeNum(DICETYPE type, int num)
+{
+    DIceUpgradeNum[(int)type]++;
+}
+
+int GameHandler::GetUpgradeNum(DICETYPE type)
+{
+
+    return DIceUpgradeNum[(int)type];
+}
 
 // MonsterTr 종료전 Monster객체를 소멸시키고 리스트에서 제거하기 위한 함수
 void GameHandler::DeleteMonster(MonsterBase *Monster)            
@@ -497,7 +609,7 @@ void GameHandler::SpawnMonster(MONSTER Type, int HP)
 void GameHandler::SpawnDice(int slot)
 {
     shared_ptr<DiceBase> newDice = NULL;
-    switch (rand() % 5)
+    switch (rand()%5)
     {
     case 0:
         newDice = make_shared<DiceBase>(slot, 1);
@@ -617,25 +729,28 @@ DWORD WINAPI ProjectileTr(LPVOID Param)
 DWORD WINAPI DiceTr(LPVOID Param)
 {
     shared_ptr<DiceBase> Dice = *(shared_ptr<DiceBase>*)Param;
-    float AttackSpeed = Dice->GetSpeed();
-    ATKTYPE AttackType = Dice->GetAttackType();
+    
     while (!Dice->IsReadyToDel())                                               // 스레드 종료를 위한 플래그 변수
     {
         shared_ptr<MonsterBase> Target;
-        
-        Target = GameHandler::GetInstance()->GetMonsterRef(AttackType);
+        ATKTYPE AttackType = Dice->GetAttackType();
+        GameHandler *GHnd = GameHandler::GetInstance();
+
+        Target = GHnd->GetMonsterRef(AttackType);
         if (Target != NULL)
         {
-            shared_ptr<ProjectileBase> Proj = Dice->SpawnProj();
-            GameHandler::GetInstance()->AddProjectile(Proj);                    // 생성한 Projectile을 리스트에 등록. 동기화 되어있음
+            Dice->SetUpgradNum(GHnd->GetUpgradeNum(Dice->GetType()));
 
+            shared_ptr<ProjectileBase> Proj = Dice->SpawnProj();
+            GHnd->AddProjectile(Proj);                                      // 생성한 Projectile을 리스트에 등록. 동기화 되어있음
+            
             pair<shared_ptr<ProjectileBase>, shared_ptr<MonsterBase>> rParam;
             rParam = make_pair(Proj, Target);
 
             CreateThread(NULL, 0, ProjectileTr, &rParam, 0, NULL);
         }
         Target = NULL;
-        Sleep(DWORD(AttackSpeed * 1000));
+        Sleep(DWORD(Dice->GetSpeed() * 1000));
     }
 
     return 0;

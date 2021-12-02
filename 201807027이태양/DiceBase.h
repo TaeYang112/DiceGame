@@ -1,7 +1,6 @@
 #pragma once
 #include "framework.h"
 #include "ObjectBase.h"
-#include "ProjectileBase.h"
 #include <memory>
 #include <vector>
 
@@ -9,11 +8,11 @@
 #define EYE_BOLD 10
 enum class DICETYPE
 {
-	ORIGINAL,
-	PURPLE,
-	GRAY,
-	ICE,
-	SNIPER
+	PURPLE=0,
+	GRAY=1,
+	ICE=2,
+	SNIPER=3,
+	BLACK = 4
 };
 
 enum class ATKTYPE
@@ -23,7 +22,6 @@ enum class ATKTYPE
 	RANDOM
 };
 
-using namespace std;
 class ProjectileBase;
 class DiceBase : ObjectBase
 {
@@ -34,6 +32,7 @@ public:
 	BOOL IsSelected;
 	BOOL bReadyToDel;
 	int AttackCount;	// 공격횟수.  Projectile 소환위치에 관여
+	int UpgradeNum;		// 강화 횟수
 protected:
 	
 	int Power;			// 데미지
@@ -66,8 +65,14 @@ public:
 	ATKTYPE GetAttackType() const;
 
 	Debuff GetDebuff();
+
+	void SetUpgradNum(int num);
+
+	DICETYPE GetType() const;
 	
 	void AddEye(int eye);
+	virtual void EyeChanged();
+
 	bool IsOverlappedPoint(const POINT TargetPoint) const;
 	void SetSelected(BOOL IsSelected);
 	//void ReDraw(HWND hWnd);
