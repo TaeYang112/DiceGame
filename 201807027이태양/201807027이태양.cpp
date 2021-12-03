@@ -196,6 +196,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         OnPaint(hWnd);
         break;
     case WM_DESTROY:
+        GHnd->DestroyInst();
         SuspendThread(IDRHandle);
         PostQuitMessage(0);
         break;

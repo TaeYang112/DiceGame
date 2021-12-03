@@ -88,6 +88,7 @@ GameHandler* GameHandler::GetInstance()
 }
 void GameHandler::DestroyInst()
 {
+    Clock::DestroyInst();
     if (Instance)
     {
         delete Instance;
