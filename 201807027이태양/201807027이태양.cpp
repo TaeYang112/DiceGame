@@ -204,6 +204,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         IDRHandle = CreateThread(NULL, 0, IDRTimer, NULL, 0, NULL);
 
         GHnd = GameHandler::GetInstance();
+        GHnd->SetHWND(hWnd);
 
         break;
     default:

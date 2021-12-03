@@ -254,13 +254,13 @@ float DiceBase::GetSpeed() const
 	return AttackSpeed;
 }
 
-shared_ptr<ProjectileBase> DiceBase::SpawnProj()
+shared_ptr<ProjectileBase> DiceBase::SpawnProj(int Lv)
 {
 	AttackCount++;
 	int index = AttackCount % DiceEye;
 	RECT LocRect = GetEyeLoc(DiceEye)[index];
 	POINT Loc = { LocRect.left, LocRect.top };
-	shared_ptr<ProjectileBase> Proj = make_shared<ProjectileBase>(Loc,Power,ShotSpeed,Color);
+	shared_ptr<ProjectileBase> Proj = make_shared<ProjectileBase>(Loc,Power  + (Power * Lv * 0.2)  ,ShotSpeed,Color);
 	Proj->SetDebuff(GetDebuff());
 
 	return Proj;
@@ -277,10 +277,6 @@ Debuff DiceBase::GetDebuff()
 	return reDebuff;
 }
 
-void DiceBase::SetUpgradNum(int num)
-{
-	UpgradeNum = num;
-}
 
 DICETYPE DiceBase::GetType() const
 {

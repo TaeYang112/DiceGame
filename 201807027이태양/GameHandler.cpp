@@ -20,6 +20,7 @@ DWORD WINAPI MonsterTr(LPVOID Param);
 DWORD WINAPI DiceTr(LPVOID Param);
 DWORD WINAPI PlayTr(LPVOID Param);
 GameHandler* GameHandler::Instance = nullptr;
+HWND GameHandler::hWnd = NULL;
 //HWND g_hWnd;
 
 
@@ -32,6 +33,7 @@ GameHandler::GameHandler() : DIceUpgradeNum{ 0,0,0,0,0,0 }
     Price = 250;
     Money = 500;
     HP = 3;
+    GameState = 0;
 
     HPFont = CreateFont(25, 0, 0, 0, 0, 0, 0, 0, HANGEUL_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("맑은 고딕"));
     MoneyFont = CreateFont(30, 0, 0, 0, 0, 0, 0, 0, HANGEUL_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("맑은 고딕"));
@@ -56,7 +58,8 @@ GameHandler::GameHandler() : DIceUpgradeNum{ 0,0,0,0,0,0 }
     HP_SemaHnd = CreateSemaphore(NULL, 1, 1, NULL);
     //디버그
 
-    CreateThread(NULL, 0, PlayTr, NULL, 0, NULL);                    // 게임의 진행관리 쓰레드
+    
+
 }
 
 GameHandler::~GameHandler()
@@ -69,6 +72,8 @@ GameHandler::~GameHandler()
     CloseHandle(Monster_SemaHnd);
     CloseHandle(Money_SemaHnd);
     CloseHandle(HP_SemaHnd);
+
+    if (PlayTRHnd != NULL) CloseHandle(PlayTRHnd);
 }
 
 
@@ -89,12 +94,19 @@ void GameHandler::DestroyInst()
     }
 }
 
+void GameHandler::SetHWND(HWND hWnd)
+{
+    this->hWnd = hWnd;
+}
+
 void GameHandler::ButtonInit()
 {
     // 구매버튼
     Purchase = make_shared<ButtonObject>(POINT{ 305,450 }, 100, 100);
     Purchase->SetClickAction([this]()
         {
+            if (GameState == 0) GameStart();
+
             if (DiceCount >= 15) return; // 주사위 자리가 없다면 리턴
 
             if (Money < Price) return;
@@ -129,6 +141,7 @@ void GameHandler::ButtonInit()
    
     for (int i = 0; i<5; i++)
     {
+        
         UpgradeBtn[i] = make_shared<ButtonObject>(POINT{ x,y }, 70, 70);
 
         UpgradeBtn[i]->SetDrawAtion([=](HDC hdc)
@@ -174,7 +187,7 @@ void GameHandler::ButtonInit()
                 
                 SelectObject(hdc, subFont);
                 // 레벨 표시
-                WCHAR LVText[6] = {};
+                WCHAR LVText[7] = {};
                 int LV = GetUpgradeNum((DICETYPE)i);
                 wsprintf(LVText, TEXT("LV. %d"), LV);
                 RECT LRect = { x + 8,y +20,x + 70, y + 70+20 };
@@ -193,6 +206,7 @@ void GameHandler::ButtonInit()
 
         UpgradeBtn[i]->SetClickAction([=]()
             {
+                if (GameState == 0) return;
                 int price = 100 + GetUpgradeNum((DICETYPE)i) * 100;
                 cout << "가격 : " << price << endl;
                 if (Money >= price)
@@ -207,7 +221,55 @@ void GameHandler::ButtonInit()
 
 }
 
+void GameHandler::GameOver()
+{
+    
+    int min = Clock::GetInstance()->GetTime(TIME::MINUTE);
+    int sec = Clock::GetInstance()->GetTime(TIME::SECOND);
 
+    GameState = 0;              // 각 스레드 종료 및 Projectile, Monster 객체 소멸
+    
+    for (int i = 0; i < 15; i++)
+    {
+        v_Dice[i].reset();
+    }
+    Clock::GetInstance()->ClockClear();
+
+    for (int i = 0; i < 5;i++)
+    {
+        DIceUpgradeNum[i] = 0;
+    }
+
+    DraggingDice.reset(nullptr);
+    DiceCount = 0;
+    Price = 250;
+    Money = 500;
+    HP = 3;
+    bDragging = FALSE;
+
+    
+    Clock::GetInstance()->ClockStop();
+
+    if (hWnd != NULL)
+    {
+        WCHAR OverText[50];
+        
+        wsprintf(OverText, L"목숨이 모두 소모되었습니다.\n 결과 : %d분 %d초", min, sec);
+        MessageBox(hWnd, OverText, L"게임 종료", MB_OK);
+    }
+}
+
+void GameHandler::GameStart()
+{
+
+    GameState = 1;
+    PlayTRHnd = CreateThread(NULL, 0, PlayTr, NULL, 0, NULL);                    // 게임의 진행관리 쓰레드
+}
+
+int GameHandler::GetGameState() const
+{
+    return GameState;
+}
 POINT GameHandler::GetMousePos() const
 {
 	return MousePos;
@@ -343,12 +405,22 @@ void GameHandler::DrawGame(HDC hdc)
     Ellipse(hdc, 345, 485, 350, 490);
     Ellipse(hdc, 360, 485, 365, 490);
     
-    // 가격 표시
+    // 가격/시작 표시
     SelectObject(hdc, MoneyFont);
-    WCHAR PriceText[5] = {};
-    wsprintf(PriceText, TEXT("%d"), Price);
-    RECT PRect = { 320,495,390, 525 };
-    DrawText(hdc, PriceText, -1, &PRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+    if (GameState == 1)
+    {
+        WCHAR PriceText[5] = {};
+        wsprintf(PriceText, TEXT("%d"), Price);
+        RECT PRect = { 320,495,390, 525 };
+        DrawText(hdc, PriceText, -1, &PRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+    }
+    else
+    {
+        WCHAR StartText[3] = {};
+        wsprintf(StartText, TEXT("%s"), L"시작");
+        RECT SRect = { 320,495,390, 525 };
+        DrawText(hdc, StartText, -1, &SRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+    }
     
 
     // 돈 표시
@@ -368,41 +440,45 @@ void GameHandler::DrawGame(HDC hdc)
         UpgradeBtn[i]->DrawObject(hdc);
     }
     
-    // 몬스터 
-    //WaitForSingleObject(Monster_SemaHnd, INFINITE);
-    auto it = l_Monster.rbegin();
-    while (it != l_Monster.rend())                   // 먼저 소환한 몬스터가 겹친 몬스터중 맨앞에 위치
+    if (GameState == 1)     // 게임 진행중에만 표시
     {
-        if ((*it)->GetState() == STATE::ALIVE)         // 살아있지 않으면
+
+        // 몬스터 
+        WaitForSingleObject(Monster_SemaHnd, INFINITE);
+        auto it = l_Monster.rbegin();
+        while (it != l_Monster.rend())                   // 먼저 소환한 몬스터가 겹친 몬스터중 맨앞에 위치
+        {
+            if ((*it)->GetState() == STATE::ALIVE)         // 살아있지 않으면
+            {
+                (*it)->DrawObject(hdc);
+            }
+            it++;
+        }
+         ReleaseSemaphore(Monster_SemaHnd, 1, NULL);
+
+
+
+         // 주사위
+        for (int i = 0; i < 15; i++)
+        {
+            if (v_Dice[i] == nullptr) continue;
+            v_Dice[i]->DrawObject(hdc);
+        }
+
+        // 투사체
+        WaitForSingleObject(Proj_SemaHnd, INFINITE);
+        for (auto it = l_Projectile.begin(); it != l_Projectile.end(); it++)
         {
             (*it)->DrawObject(hdc);
         }
-        it++;
-    }
-   // ReleaseSemaphore(Monster_SemaHnd, 1, NULL);
+        ReleaseSemaphore(Proj_SemaHnd, 1, NULL);
 
-    
 
-    // 주사위
-    for (int i = 0; i < 15; i++)
-    {
-        if (v_Dice[i] == nullptr) continue;
-        v_Dice[i]->DrawObject(hdc);
-    }
-
-    // 투사체
-    WaitForSingleObject(Proj_SemaHnd, INFINITE);
-    for (auto it = l_Projectile.begin(); it != l_Projectile.end(); it++)
-    {
-        (*it)->DrawObject(hdc);
-    }
-    ReleaseSemaphore(Proj_SemaHnd, 1, NULL);
-
-    
-    // 드래그중인 임시 주사위
-    if (IsDragging() == TRUE)
-    {
-        DraggingDice->DrawObject(hdc);
+        // 드래그중인 임시 주사위
+        if (IsDragging() == TRUE)
+        {
+            DraggingDice->DrawObject(hdc);
+        }
     }
     
 
@@ -539,6 +615,7 @@ void GameHandler::AddHP(int newHP)
     HP += newHP;
     cout << "[HP]\t"<< HP << endl;
     ReleaseSemaphore(HP_SemaHnd, 1, NULL);
+    if (HP <= 0) GameOver();
 }
 
 void GameHandler::AddUpgradeNum(DICETYPE type, int num)
@@ -681,6 +758,11 @@ DWORD WINAPI MonsterTr(LPVOID Param)
    BOOL bArrival = FALSE;
    while (Monster->GetState() == STATE::ALIVE)
    {
+       if (GHnd->GetGameState() == 0)
+       {
+           bArrival = TRUE;
+           break;
+       }
         BOOL bMoveEnd = Monster->MoveNextPoint();   // 몬스터 이동. 만약 끝 지점에 도착하면 TRUE 반환
         
         if (bMoveEnd)
@@ -705,8 +787,9 @@ DWORD WINAPI ProjectileTr(LPVOID Param)
     shared_ptr<ProjectileBase> Projectile = ((pair<shared_ptr<ProjectileBase>, shared_ptr<MonsterBase>>*)Param)->first;
     shared_ptr<MonsterBase> Target = ((pair<shared_ptr<ProjectileBase>, shared_ptr<MonsterBase>>*)Param)->second;
     
+    GameHandler* GHnd = GameHandler::GetInstance();
     BOOL result = FALSE;;
-    while (Target->GetState() == STATE::ALIVE) 
+    while (Target->GetState() == STATE::ALIVE && GHnd->GetGameState() != 0) 
     {
 
         result = Projectile->MoveToTarget(Target.get()); // 이동 후  타겟과 겹치면 TRUE 반환
@@ -722,26 +805,27 @@ DWORD WINAPI ProjectileTr(LPVOID Param)
     Target = NULL;
     if(result == FALSE) Projectile->Disappear();
     
-    GameHandler::GetInstance()->DeleteProjectile(Projectile.get());
+    GHnd->DeleteProjectile(Projectile.get());
     return 0;
 }
 
 DWORD WINAPI DiceTr(LPVOID Param)
 {
     shared_ptr<DiceBase> Dice = *(shared_ptr<DiceBase>*)Param;
-    
-    while (!Dice->IsReadyToDel())                                               // 스레드 종료를 위한 플래그 변수
+    GameHandler* GHnd = GameHandler::GetInstance();
+
+    while (!Dice->IsReadyToDel() && GHnd->GetGameState() != 0)                                               // 스레드 종료를 위한 플래그 변수
     {
         shared_ptr<MonsterBase> Target;
         ATKTYPE AttackType = Dice->GetAttackType();
-        GameHandler *GHnd = GameHandler::GetInstance();
+        
 
         Target = GHnd->GetMonsterRef(AttackType);
         if (Target != NULL)
         {
-            Dice->SetUpgradNum(GHnd->GetUpgradeNum(Dice->GetType()));
+            int UpgradNum = GHnd->GetUpgradeNum(Dice->GetType());
 
-            shared_ptr<ProjectileBase> Proj = Dice->SpawnProj();
+            shared_ptr<ProjectileBase> Proj = Dice->SpawnProj(UpgradNum);
             GHnd->AddProjectile(Proj);                                      // 생성한 Projectile을 리스트에 등록. 동기화 되어있음
             
             pair<shared_ptr<ProjectileBase>, shared_ptr<MonsterBase>> rParam;
@@ -752,7 +836,7 @@ DWORD WINAPI DiceTr(LPVOID Param)
         Target = NULL;
         Sleep(DWORD(Dice->GetSpeed() * 1000));
     }
-
+    cout << "종료";
     return 0;
 }
 
@@ -764,14 +848,15 @@ DWORD WINAPI PlayTr(LPVOID Param)
 
     int HPRatio = 0;
     int Time = 0;
-    while (1)
+    while (GHnd->GetGameState() != 0)   // 패배 전까지 반복
     {
         Time = clock->GetTime(TIME::MINUTE) * 60 + clock->GetTime(TIME::SECOND);
         
         GHnd->SpawnMonster(MONSTER::ORIGINAL, 30 + 10 * (Time / 8));
 
-        int SleepTime = max(700, 2000 - Time*5);
+        int SleepTime = max(700, 2000 - Time*3);
         Sleep(SleepTime);
     }
+    return 0;
 }
 

@@ -51,7 +51,11 @@ private:
 	HANDLE Money_SemaHnd;
 	HANDLE HP_SemaHnd;
 
+	HANDLE PlayTRHnd;
 	
+	int GameState;								// 0 == 시작전, 1 == 게임중
+
+	static HWND hWnd;
 	
 private:
 	GameHandler();								// 싱글톤 패턴을 위해 private
@@ -61,7 +65,15 @@ public:
 	static GameHandler* GetInstance();			// GameHandler 객체 얻기
 	void DestroyInst();							// GameHandler 객체 제거
 
+	void SetHWND(HWND hWnd);
+
 	void ButtonInit();
+
+	void GameOver();
+
+	void GameStart();
+
+	int GetGameState() const;
 
 	POINT GetMousePos() const;
 	void SetMousePos(int x, int y);

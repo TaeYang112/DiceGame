@@ -32,7 +32,6 @@ public:
 	BOOL IsSelected;
 	BOOL bReadyToDel;
 	int AttackCount;	// 공격횟수.  Projectile 소환위치에 관여
-	int UpgradeNum;		// 강화 횟수
 protected:
 	
 	int Power;			// 데미지
@@ -60,13 +59,12 @@ public:
 
 	float GetSpeed() const;
 
-	shared_ptr<ProjectileBase> SpawnProj();
+	shared_ptr<ProjectileBase> SpawnProj(int Lv); 
 
 	ATKTYPE GetAttackType() const;
 
 	Debuff GetDebuff();
 
-	void SetUpgradNum(int num);
 
 	DICETYPE GetType() const;
 	

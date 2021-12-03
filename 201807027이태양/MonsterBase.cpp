@@ -1,4 +1,4 @@
-#include "MonsterBase.h"
+ #include "MonsterBase.h"
 #include <math.h>
 MonsterBase::MonsterBase(int HP) : SlowDebuff{ 0, }
 {
@@ -144,6 +144,7 @@ BOOL MonsterBase::IsOverlappedPoint(const POINT TargetPoint) const
 void MonsterBase::TakeDamage(int Power)
 {
 	HP -= Power;
+	cout << "[받은 데미지] " << Power << endl;
 	if (HP <= 0)
 	{
 		HP = 0;
