@@ -10,7 +10,7 @@
 
 #define MAX_LOADSTRING 100
 
-#define DEBUG_MODE true
+#define DEBUG_MODE false
 
 
 #if DEBUG_MODE
@@ -231,15 +231,6 @@ void OnPaint(HWND hWnd)
 
     // 실제 그리기 코드
 
-    /*
-    if (DEBUG_MODE)                             //마우스 좌표를 출력
-    {
-        WCHAR mouse_position[20];
-        POINT pos = GHnd->GetMousePos();
-        wsprintfW(mouse_position, L"x = %d   y = %d", pos.x, pos.y);
-        TextOut(hdc, 800, 0, mouse_position, lstrlenW(mouse_position));
-    }
-    */
 
     GHnd->DrawGame(hdc);
 
