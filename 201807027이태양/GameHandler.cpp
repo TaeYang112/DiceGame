@@ -64,6 +64,9 @@ GameHandler::GameHandler() : DIceUpgradeNum{ 0,0,0,0,0,0 }
 
 GameHandler::~GameHandler()
 {
+    GameState = 0;
+    Sleep(100);             // 게임이 종료될 때 여러 객체들이 소멸되는 동시에 쓰레드에서 그 객체를 참조하는듯 함.
+                            // 그래서 GaemState = 0 으로 쓰레드에게 종료를 요구하고 Sleep으로 스레드 종료까지 기다림
     DeleteObject(HPFont);
     DeleteObject(MoneyFont);
     DeleteObject(TopFont);
@@ -804,7 +807,7 @@ DWORD WINAPI ProjectileTr(LPVOID Param)
         Sleep(17);
     }
     Target = NULL;
-    if(result == FALSE) Projectile->Disappear();
+    if(result == FALSE) Projectile->Disappear();        // 천천히 사라지는 효과
     
     GHnd->DeleteProjectile(Projectile.get());
     return 0;
